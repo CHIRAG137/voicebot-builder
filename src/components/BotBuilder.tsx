@@ -13,6 +13,7 @@ interface BotConfig {
   name: string;
   websiteUrl: string;
   description: string;
+  file: File | null;
   voiceEnabled: boolean;
   languages: string[];
   primaryPurpose: string;
@@ -31,6 +32,7 @@ export const BotBuilder = () => {
     name: "",
     websiteUrl: "",
     description: "",
+    file: null,
     voiceEnabled: false,
     languages: ["English"],
     primaryPurpose: "",
