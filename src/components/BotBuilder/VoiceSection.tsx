@@ -11,11 +11,6 @@ interface VoiceSectionProps {
 export const VoiceSection = ({ botConfig, updateConfig }: VoiceSectionProps) => {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Mic className="w-5 h-5 text-primary" />
-        <h3 className="text-xl font-semibold">Voice Configuration</h3>
-      </div>
-      
       <Card className="p-6 border border-border/50 bg-card/50">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

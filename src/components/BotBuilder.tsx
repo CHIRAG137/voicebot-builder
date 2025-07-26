@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Bot, Sparkles, Globe, MessageSquare } from "lucide-react";
+import { CollapsibleSection } from "@/components/CollapsibleSection";
+import { Bot, Sparkles, User, Mic, Languages, Brain } from "lucide-react";
 import { BasicInfoSection } from "./BotBuilder/BasicInfoSection";
 import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
@@ -61,7 +57,7 @@ export const BotBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle py-12 px-4">
+    <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -89,25 +85,40 @@ export const BotBuilder = () => {
             </CardDescription>
           </CardHeader>
           
-          <CardContent className="space-y-8">
-            <form onSubmit={handleSubmit} className="space-y-8">
+          <CardContent className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Basic Information */}
-              <BasicInfoSection botConfig={botConfig} updateConfig={updateConfig} />
-              
-              <Separator className="my-8" />
+              <CollapsibleSection
+                title="Basic Information"
+                icon={<User className="w-5 h-5 text-primary" />}
+                defaultOpen={true}
+              >
+                <BasicInfoSection botConfig={botConfig} updateConfig={updateConfig} />
+              </CollapsibleSection>
               
               {/* Voice Configuration */}
-              <VoiceSection botConfig={botConfig} updateConfig={updateConfig} />
-              
-              <Separator className="my-8" />
+              <CollapsibleSection
+                title="Voice Configuration"
+                icon={<Mic className="w-5 h-5 text-primary" />}
+              >
+                <VoiceSection botConfig={botConfig} updateConfig={updateConfig} />
+              </CollapsibleSection>
               
               {/* Language Configuration */}
-              <LanguageSection botConfig={botConfig} updateConfig={updateConfig} />
-              
-              <Separator className="my-8" />
+              <CollapsibleSection
+                title="Language Support"
+                icon={<Languages className="w-5 h-5 text-primary" />}
+              >
+                <LanguageSection botConfig={botConfig} updateConfig={updateConfig} />
+              </CollapsibleSection>
               
               {/* Persona Configuration */}
-              <PersonaSection botConfig={botConfig} updateConfig={updateConfig} />
+              <CollapsibleSection
+                title="Persona & Behavior"
+                icon={<Brain className="w-5 h-5 text-primary" />}
+              >
+                <PersonaSection botConfig={botConfig} updateConfig={updateConfig} />
+              </CollapsibleSection>
               
               {/* Submit Button */}
               <div className="flex justify-end pt-6">

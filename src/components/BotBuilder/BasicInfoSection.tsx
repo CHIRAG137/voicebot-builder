@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { User, Globe, FileText } from "lucide-react";
+import { Globe, FileText } from "lucide-react";
 
 interface BasicInfoSectionProps {
   botConfig: any;
@@ -11,11 +11,6 @@ interface BasicInfoSectionProps {
 export const BasicInfoSection = ({ botConfig, updateConfig }: BasicInfoSectionProps) => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <User className="w-5 h-5 text-primary" />
-        <h3 className="text-xl font-semibold">Basic Information</h3>
-      </div>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="botName" className="text-sm font-medium">

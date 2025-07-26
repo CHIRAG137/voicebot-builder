@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Languages, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 interface LanguageSectionProps {
   botConfig: any;
@@ -35,11 +35,6 @@ export const LanguageSection = ({ botConfig, updateConfig }: LanguageSectionProp
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Languages className="w-5 h-5 text-primary" />
-        <h3 className="text-xl font-semibold">Language Support</h3>
-      </div>
-      
       <Card className="p-6 border border-border/50 bg-card/50">
         <div className="space-y-4">
           <div>

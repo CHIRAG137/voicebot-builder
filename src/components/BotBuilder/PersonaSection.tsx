@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Brain, Target, MessageCircle, Palette, Users, Hash, Settings } from "lucide-react";
+import { Target, MessageCircle, Palette, Users, Hash, Settings } from "lucide-react";
 
 interface PersonaSectionProps {
   botConfig: any;
@@ -13,11 +13,6 @@ interface PersonaSectionProps {
 export const PersonaSection = ({ botConfig, updateConfig }: PersonaSectionProps) => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <Brain className="w-5 h-5 text-primary" />
-        <h3 className="text-xl font-semibold">Persona & Behavior</h3>
-      </div>
-      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Primary Purpose */}
         <Card className="p-4 border border-border/50 bg-card/50">
