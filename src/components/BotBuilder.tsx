@@ -85,45 +85,89 @@ export const BotBuilder = () => {
     setBotConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add new bot to saved bots
-    const newBot = {
-      id: Date.now().toString(),
-      name: botConfig.name,
-      description: botConfig.description,
-      websiteUrl: botConfig.websiteUrl,
-      voiceEnabled: botConfig.voiceEnabled,
-      languages: botConfig.languages,
-      primaryPurpose: botConfig.primaryPurpose,
-      conversationalTone: botConfig.conversationalTone
-    };
-    
-    setSavedBots(prev => [newBot, ...prev]);
-    
-    toast({
-      title: "Bot Configuration Saved!",
-      description: `${botConfig.name} has been created successfully.`,
-    });
-    
-    // Reset form
-    setBotConfig({
-      name: "",
-      websiteUrl: "",
-      description: "",
-      file: null,
-      voiceEnabled: false,
-      languages: ["English"],
-      primaryPurpose: "",
-      specializationArea: "",
-      conversationalTone: "",
-      responseStyle: "",
-      targetAudience: "",
-      keyTopics: "",
-      keywords: "",
-      customInstructions: "",
-    });
+    try {
+      // Prepare form data for API
+      const formData = new FormData();
+      formData.append('name', botConfig.name);
+      formData.append('website_url', botConfig.websiteUrl);
+      formData.append('description', botConfig.description);
+      formData.append('is_voice_enabled', botConfig.voiceEnabled.toString());
+      formData.append('is_auto_translate', 'false'); // Default value
+      formData.append('supported_languages', JSON.stringify(botConfig.languages));
+      formData.append('primary_purpose', botConfig.primaryPurpose);
+      formData.append('specialisation_area', botConfig.specializationArea);
+      formData.append('conversation_tone', botConfig.conversationalTone);
+      formData.append('response_style', botConfig.responseStyle);
+      formData.append('target_audience', botConfig.targetAudience);
+      formData.append('key_topics', botConfig.keyTopics);
+      formData.append('keywords', botConfig.keywords);
+      formData.append('custom_instructions', botConfig.customInstructions);
+      
+      // Add file if present
+      if (botConfig.file) {
+        formData.append('file', botConfig.file);
+      }
+
+      // Make API call
+      const response = await fetch('http://localhost:5000/api/bots/create', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create bot');
+      }
+
+      // Add new bot to saved bots with the returned bot_id
+      const newBot = {
+        id: result.bot_id,
+        name: botConfig.name,
+        description: botConfig.description,
+        websiteUrl: botConfig.websiteUrl,
+        voiceEnabled: botConfig.voiceEnabled,
+        languages: botConfig.languages,
+        primaryPurpose: botConfig.primaryPurpose,
+        conversationalTone: botConfig.conversationalTone
+      };
+      
+      setSavedBots(prev => [newBot, ...prev]);
+      
+      toast({
+        title: "Bot Created Successfully!",
+        description: result.message || `${botConfig.name} has been created successfully.`,
+      });
+      
+      // Reset form
+      setBotConfig({
+        name: "",
+        websiteUrl: "",
+        description: "",
+        file: null,
+        voiceEnabled: false,
+        languages: ["English"],
+        primaryPurpose: "",
+        specializationArea: "",
+        conversationalTone: "",
+        responseStyle: "",
+        targetAudience: "",
+        keyTopics: "",
+        keywords: "",
+        customInstructions: "",
+      });
+
+    } catch (error) {
+      console.error('Error creating bot:', error);
+      toast({
+        title: "Error Creating Bot",
+        description: error instanceof Error ? error.message : "Failed to create bot. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleTest = (id: string) => {
