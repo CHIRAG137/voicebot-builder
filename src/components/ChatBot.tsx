@@ -153,7 +153,7 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col p-0">
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-4 overflow-y-auto max-h-[calc(600px-180px)]">
             <div className="space-y-4">
               {messages.map((message) => (
                 <div
@@ -171,8 +171,8 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
 
                   <div
                     className={`max-w-[80%] rounded-lg px-3 py-2 ${message.sender === "user"
-                        ? "bg-primary text-primary-foreground ml-auto"
-                        : "bg-muted"
+                      ? "bg-primary text-primary-foreground ml-auto"
+                      : "bg-muted"
                       }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
