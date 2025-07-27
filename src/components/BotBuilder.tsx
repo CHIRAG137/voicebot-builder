@@ -32,6 +32,15 @@ export const BotBuilder = () => {
   const { toast } = useToast();
   const [savedBots, setSavedBots] = useState<any[]>([]);
   const [selectedBotForTest, setSelectedBotForTest] = useState<any | null>(null);
+  const [visibleBotCount, setVisibleBotCount] = useState(3);
+
+  const handleShowMore = () => {
+    setVisibleBotCount(prev => Math.min(prev + 3, savedBots.length));
+  };
+
+  const handleShowLess = () => {
+    setVisibleBotCount(3);
+  };
 
   const [botConfig, setBotConfig] = useState<BotConfig>({
     name: "",
@@ -238,8 +247,9 @@ export const BotBuilder = () => {
                 </p>
               </div>
 
+              {/* Show only a limited number of bots */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedBots.map(bot => (
+                {savedBots.slice(0, visibleBotCount).map(bot => (
                   <BotCard
                     key={bot.id}
                     bot={bot}
@@ -249,6 +259,20 @@ export const BotBuilder = () => {
                     onDelete={handleDelete}
                   />
                 ))}
+              </div>
+
+              {/* Show More / Show Less buttons */}
+              <div className="flex justify-center gap-4 pt-6">
+                {visibleBotCount < savedBots.length && (
+                  <Button onClick={handleShowMore} variant="outline">
+                    Show More
+                  </Button>
+                )}
+                {visibleBotCount > 3 && (
+                  <Button onClick={handleShowLess} variant="ghost">
+                    Show Less
+                  </Button>
+                )}
               </div>
             </div>
           </div>
