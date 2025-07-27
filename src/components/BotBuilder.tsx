@@ -166,9 +166,12 @@ export const BotBuilder = () => {
     if (bot) setSelectedBotForTest(bot);
   };
 
-  const handleShare = (id: string) => {
-    toast({ title: "Share Bot", description: "Bot sharing link copied to clipboard!" });
+  const handleShare = (botId: string) => {
+    const shareUrl = `${window.location.origin}/bot/${botId}`;
+    navigator.clipboard.writeText(shareUrl);
+    alert(`Shareable link copied:\n${shareUrl}`);
   };
+
 
   const handleIntegrate = (id: string) => {
     toast({ title: "Integration Code", description: "Bot integration code copied to clipboard!" });
