@@ -69,17 +69,40 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
     setInputMessage("");
     setIsLoading(true);
 
-    // Simulate bot response (replace with actual API call)
-    setTimeout(() => {
-      const botResponse: Message = {
+    try {
+      const response = await fetch("http://localhost:5000/api/bots/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: userMessage.content,
+          botId: bot.id, // Make sure this is the MongoDB ObjectId of the bot
+        }),
+      });
+
+      const data = await response.json();
+
+      const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'm a test bot response. In a real implementation, this would connect to your bot's API endpoint.",
+        content: data.answer || data.message || "Sorry, I don't have an answer for that.",
         sender: "bot",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, botResponse]);
+
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Failed to fetch bot response:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        content: "Something went wrong. Please try again.",
+        sender: "bot",
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -135,9 +158,8 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${
-                    message.sender === "user" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex gap-3 ${message.sender === "user" ? "justify-end" : "justify-start"
+                    }`}
                 >
                   {message.sender === "bot" && (
                     <Avatar className="h-8 w-8 bg-gradient-primary flex-shrink-0">
@@ -146,13 +168,12 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  
+
                   <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 ${
-                      message.sender === "user"
+                    className={`max-w-[80%] rounded-lg px-3 py-2 ${message.sender === "user"
                         ? "bg-primary text-primary-foreground ml-auto"
                         : "bg-muted"
-                    }`}
+                      }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     <span className="text-xs opacity-70 mt-1 block">
@@ -210,9 +231,8 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
                     variant="ghost"
                     size="icon"
                     onClick={toggleVoiceInput}
-                    className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${
-                      isListening ? "text-red-500" : "text-muted-foreground"
-                    }`}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${isListening ? "text-red-500" : "text-muted-foreground"
+                      }`}
                   >
                     {isListening ? (
                       <MicOff className="h-4 w-4" />
