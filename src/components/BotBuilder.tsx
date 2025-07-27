@@ -8,6 +8,7 @@ import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
 import { useToast } from "@/hooks/use-toast";
+import { BotCard } from "@/components/BotCard";
 
 interface BotConfig {
   name: string;
@@ -28,6 +29,41 @@ interface BotConfig {
 
 export const BotBuilder = () => {
   const { toast } = useToast();
+  
+  // Sample bot data for demonstration
+  const [savedBots, setSavedBots] = useState([
+    {
+      id: "1",
+      name: "Customer Support Bot",
+      description: "Intelligent customer service assistant that handles inquiries, troubleshooting, and provides 24/7 support for your business.",
+      websiteUrl: "https://example-business.com",
+      voiceEnabled: true,
+      languages: ["English", "Spanish", "French"],
+      primaryPurpose: "Customer Support",
+      conversationalTone: "Professional"
+    },
+    {
+      id: "2", 
+      name: "Sales Assistant",
+      description: "AI-powered sales bot that qualifies leads, answers product questions, and guides customers through the purchasing process.",
+      websiteUrl: "https://sales-demo.com",
+      voiceEnabled: false,
+      languages: ["English"],
+      primaryPurpose: "Sales & Marketing",
+      conversationalTone: "Friendly"
+    },
+    {
+      id: "3",
+      name: "Technical Support",
+      description: "Expert technical assistant for software troubleshooting, API documentation, and developer support queries.",
+      websiteUrl: "https://dev-portal.io",
+      voiceEnabled: true,
+      languages: ["English", "German"],
+      primaryPurpose: "Technical Support",
+      conversationalTone: "Professional"
+    }
+  ]);
+
   const [botConfig, setBotConfig] = useState<BotConfig>({
     name: "",
     websiteUrl: "",
@@ -51,11 +87,73 @@ export const BotBuilder = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Add new bot to saved bots
+    const newBot = {
+      id: Date.now().toString(),
+      name: botConfig.name,
+      description: botConfig.description,
+      websiteUrl: botConfig.websiteUrl,
+      voiceEnabled: botConfig.voiceEnabled,
+      languages: botConfig.languages,
+      primaryPurpose: botConfig.primaryPurpose,
+      conversationalTone: botConfig.conversationalTone
+    };
+    
+    setSavedBots(prev => [newBot, ...prev]);
+    
     toast({
       title: "Bot Configuration Saved!",
       description: `${botConfig.name} has been created successfully.`,
     });
-    console.log("Bot Configuration:", botConfig);
+    
+    // Reset form
+    setBotConfig({
+      name: "",
+      websiteUrl: "",
+      description: "",
+      file: null,
+      voiceEnabled: false,
+      languages: ["English"],
+      primaryPurpose: "",
+      specializationArea: "",
+      conversationalTone: "",
+      responseStyle: "",
+      targetAudience: "",
+      keyTopics: "",
+      keywords: "",
+      customInstructions: "",
+    });
+  };
+
+  const handleTest = (id: string) => {
+    toast({
+      title: "Testing Bot",
+      description: "Opening bot test interface...",
+    });
+  };
+
+  const handleShare = (id: string) => {
+    toast({
+      title: "Share Bot",
+      description: "Bot sharing link copied to clipboard!",
+    });
+  };
+
+  const handleIntegrate = (id: string) => {
+    toast({
+      title: "Integration Code",
+      description: "Bot integration code copied to clipboard!",
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setSavedBots(prev => prev.filter(bot => bot.id !== id));
+    toast({
+      title: "Bot Deleted",
+      description: "Bot has been successfully deleted.",
+      variant: "destructive",
+    });
   };
 
   return (
@@ -136,6 +234,31 @@ export const BotBuilder = () => {
             </form>
           </CardContent>
         </Card>
+
+        {/* Bot Cards Section */}
+        {savedBots.length > 0 && (
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-foreground">Your Bots</h2>
+              <p className="text-muted-foreground">
+                Manage and interact with your created AI assistants
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedBots.map((bot) => (
+                <BotCard
+                  key={bot.id}
+                  bot={bot}
+                  onTest={handleTest}
+                  onShare={handleShare}
+                  onIntegrate={handleIntegrate}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
