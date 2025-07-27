@@ -158,6 +158,7 @@ export const BotBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Form Section - Constrained Width */}
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -234,18 +235,20 @@ export const BotBuilder = () => {
             </form>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Bot Cards Section */}
-        {savedBots.length > 0 && (
-          <div className="space-y-6">
+      {/* Bot Cards Section - Full Width */}
+      {savedBots.length > 0 && (
+        <div className="w-full px-4 py-12">
+          <div className="max-w-7xl mx-auto space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">Your Bots</h2>
-              <p className="text-muted-foreground">
+              <h2 className="text-3xl font-bold text-foreground">Your Bots</h2>
+              <p className="text-lg text-muted-foreground">
                 Manage and interact with your created AI assistants
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {savedBots.map((bot) => (
                 <BotCard
                   key={bot.id}
@@ -258,8 +261,8 @@ export const BotBuilder = () => {
               ))}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
