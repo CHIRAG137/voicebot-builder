@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
@@ -30,41 +30,8 @@ interface BotConfig {
 
 export const BotBuilder = () => {
   const { toast } = useToast();
-  const [selectedBotForTest, setSelectedBotForTest] = useState<typeof savedBots[0] | null>(null);
-  
-  // Sample bot data for demonstration
-  const [savedBots, setSavedBots] = useState([
-    {
-      id: "1",
-      name: "Customer Support Bot",
-      description: "Intelligent customer service assistant that handles inquiries, troubleshooting, and provides 24/7 support for your business.",
-      websiteUrl: "https://example-business.com",
-      voiceEnabled: true,
-      languages: ["English", "Spanish", "French"],
-      primaryPurpose: "Customer Support",
-      conversationalTone: "Professional"
-    },
-    {
-      id: "2", 
-      name: "Sales Assistant",
-      description: "AI-powered sales bot that qualifies leads, answers product questions, and guides customers through the purchasing process.",
-      websiteUrl: "https://sales-demo.com",
-      voiceEnabled: false,
-      languages: ["English"],
-      primaryPurpose: "Sales & Marketing",
-      conversationalTone: "Friendly"
-    },
-    {
-      id: "3",
-      name: "Technical Support",
-      description: "Expert technical assistant for software troubleshooting, API documentation, and developer support queries.",
-      websiteUrl: "https://dev-portal.io",
-      voiceEnabled: true,
-      languages: ["English", "German"],
-      primaryPurpose: "Technical Support",
-      conversationalTone: "Professional"
-    }
-  ]);
+  const [savedBots, setSavedBots] = useState<any[]>([]);
+  const [selectedBotForTest, setSelectedBotForTest] = useState<any | null>(null);
 
   const [botConfig, setBotConfig] = useState<BotConfig>({
     name: "",
@@ -83,68 +50,79 @@ export const BotBuilder = () => {
     customInstructions: "",
   });
 
+  const fetchBots = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/bots");
+      const data = await res.json();
+
+      if (res.ok) {
+        const bots = data.bots.map((bot: any) => ({
+          id: bot._id,
+          name: bot.name,
+          description: bot.description,
+          websiteUrl: bot.website_url,
+          voiceEnabled: bot.is_voice_enabled,
+          languages: bot.supported_languages?.split(",") || ["English"],
+          primaryPurpose: bot.primary_purpose,
+          conversationalTone: bot.conversation_tone,
+        }));
+        setSavedBots(bots);
+      } else {
+        console.error("Failed to load bots:", data.message);
+      }
+    } catch (err) {
+      console.error("Error fetching bots:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBots();
+  }, []);
+
   const updateConfig = (field: keyof BotConfig, value: any) => {
     setBotConfig(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
-      // Prepare form data for API
       const formData = new FormData();
-      formData.append('name', botConfig.name);
-      formData.append('website_url', botConfig.websiteUrl);
-      formData.append('description', botConfig.description);
-      formData.append('is_voice_enabled', botConfig.voiceEnabled.toString());
-      formData.append('is_auto_translate', 'false'); // Default value
-      formData.append('supported_languages', JSON.stringify(botConfig.languages));
-      formData.append('primary_purpose', botConfig.primaryPurpose);
-      formData.append('specialisation_area', botConfig.specializationArea);
-      formData.append('conversation_tone', botConfig.conversationalTone);
-      formData.append('response_style', botConfig.responseStyle);
-      formData.append('target_audience', botConfig.targetAudience);
-      formData.append('key_topics', botConfig.keyTopics);
-      formData.append('keywords', botConfig.keywords);
-      formData.append('custom_instructions', botConfig.customInstructions);
-      
-      // Add file if present
+      formData.append("name", botConfig.name);
+      formData.append("website_url", botConfig.websiteUrl);
+      formData.append("description", botConfig.description);
+      formData.append("is_voice_enabled", botConfig.voiceEnabled.toString());
+      formData.append("is_auto_translate", "false");
+      formData.append("supported_languages", JSON.stringify(botConfig.languages));
+      formData.append("primary_purpose", botConfig.primaryPurpose);
+      formData.append("specialisation_area", botConfig.specializationArea);
+      formData.append("conversation_tone", botConfig.conversationalTone);
+      formData.append("response_style", botConfig.responseStyle);
+      formData.append("target_audience", botConfig.targetAudience);
+      formData.append("key_topics", botConfig.keyTopics);
+      formData.append("keywords", botConfig.keywords);
+      formData.append("custom_instructions", botConfig.customInstructions);
+
       if (botConfig.file) {
-        formData.append('file', botConfig.file);
+        formData.append("file", botConfig.file);
       }
 
-      // Make API call
-      const response = await fetch('http://localhost:5000/api/bots/create', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5000/api/bots/create", {
+        method: "POST",
         body: formData,
       });
 
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to create bot');
+        throw new Error(result.error || "Failed to create bot");
       }
 
-      // Add new bot to saved bots with the returned bot_id
-      const newBot = {
-        id: result.bot_id,
-        name: botConfig.name,
-        description: botConfig.description,
-        websiteUrl: botConfig.websiteUrl,
-        voiceEnabled: botConfig.voiceEnabled,
-        languages: botConfig.languages,
-        primaryPurpose: botConfig.primaryPurpose,
-        conversationalTone: botConfig.conversationalTone
-      };
-      
-      setSavedBots(prev => [newBot, ...prev]);
-      
       toast({
         title: "Bot Created Successfully!",
         description: result.message || `${botConfig.name} has been created successfully.`,
       });
-      
-      // Reset form
+
       setBotConfig({
         name: "",
         websiteUrl: "",
@@ -162,8 +140,10 @@ export const BotBuilder = () => {
         customInstructions: "",
       });
 
+      // Reload all bots after creating new one
+      await fetchBots();
     } catch (error) {
-      console.error('Error creating bot:', error);
+      console.error("Error creating bot:", error);
       toast({
         title: "Error Creating Bot",
         description: error instanceof Error ? error.message : "Failed to create bot. Please try again.",
@@ -174,40 +154,26 @@ export const BotBuilder = () => {
 
   const handleTest = (id: string) => {
     const bot = savedBots.find(b => b.id === id);
-    if (bot) {
-      setSelectedBotForTest(bot);
-    }
+    if (bot) setSelectedBotForTest(bot);
   };
 
   const handleShare = (id: string) => {
-    toast({
-      title: "Share Bot",
-      description: "Bot sharing link copied to clipboard!",
-    });
+    toast({ title: "Share Bot", description: "Bot sharing link copied to clipboard!" });
   };
 
   const handleIntegrate = (id: string) => {
-    toast({
-      title: "Integration Code",
-      description: "Bot integration code copied to clipboard!",
-    });
+    toast({ title: "Integration Code", description: "Bot integration code copied to clipboard!" });
   };
 
   const handleDelete = (id: string) => {
     setSavedBots(prev => prev.filter(bot => bot.id !== id));
-    toast({
-      title: "Bot Deleted",
-      description: "Bot has been successfully deleted.",
-      variant: "destructive",
-    });
+    toast({ title: "Bot Deleted", description: "Bot has been successfully deleted.", variant: "destructive" });
   };
 
   return (
     <>
       <div className="min-h-screen bg-background py-12 px-4">
-        {/* Form Section - Constrained Width */}
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header */}
           <div className="text-center space-y-4">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-primary rounded-2xl shadow-medium mb-4">
               <Bot className="w-8 h-8 text-white" />
@@ -216,12 +182,11 @@ export const BotBuilder = () => {
               AI Bot Builder
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Create intelligent, customized AI bots tailored to your specific needs. 
+              Create intelligent, customized AI bots tailored to your specific needs.
               Configure everything from personality to capabilities with our intuitive builder.
             </p>
           </div>
 
-          {/* Main Form */}
           <Card className="shadow-strong border-0">
             <CardHeader className="space-y-1 pb-8">
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -232,47 +197,26 @@ export const BotBuilder = () => {
                 Fill in the details below to create your custom AI assistant
               </CardDescription>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Basic Information */}
-                <CollapsibleSection
-                  title="Basic Information"
-                  icon={<User className="w-5 h-5 text-primary" />}
-                  defaultOpen={true}
-                >
+                <CollapsibleSection title="Basic Information" icon={<User className="w-5 h-5 text-primary" />} defaultOpen={true}>
                   <BasicInfoSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
-                
-                {/* Voice Configuration */}
-                <CollapsibleSection
-                  title="Voice Configuration"
-                  icon={<Mic className="w-5 h-5 text-primary" />}
-                >
+                <CollapsibleSection title="Voice Configuration" icon={<Mic className="w-5 h-5 text-primary" />}>
                   <VoiceSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
-                
-                {/* Language Configuration */}
-                <CollapsibleSection
-                  title="Language Support"
-                  icon={<Languages className="w-5 h-5 text-primary" />}
-                >
+                <CollapsibleSection title="Language Support" icon={<Languages className="w-5 h-5 text-primary" />}>
                   <LanguageSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
-                
-                {/* Persona Configuration */}
-                <CollapsibleSection
-                  title="Persona & Behavior"
-                  icon={<Brain className="w-5 h-5 text-primary" />}
-                >
+                <CollapsibleSection title="Persona & Behavior" icon={<Brain className="w-5 h-5 text-primary" />}>
                   <PersonaSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
-                
-                {/* Submit Button */}
+
                 <div className="flex justify-end pt-6">
-                  <Button 
-                    type="submit" 
-                    size="lg" 
+                  <Button
+                    type="submit"
+                    size="lg"
                     className="bg-gradient-primary hover:opacity-90 shadow-medium px-8 py-3 text-lg font-semibold"
                   >
                     <Bot className="w-5 h-5 mr-2" />
@@ -284,7 +228,6 @@ export const BotBuilder = () => {
           </Card>
         </div>
 
-        {/* Bot Cards Section - Full Width */}
         {savedBots.length > 0 && (
           <div className="w-full px-4 py-12">
             <div className="max-w-7xl mx-auto space-y-8">
@@ -294,9 +237,9 @@ export const BotBuilder = () => {
                   Manage and interact with your created AI assistants
                 </p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedBots.map((bot) => (
+                {savedBots.map(bot => (
                   <BotCard
                     key={bot.id}
                     bot={bot}
@@ -312,12 +255,8 @@ export const BotBuilder = () => {
         )}
       </div>
 
-      {/* Chat Bot Modal */}
       {selectedBotForTest && (
-        <ChatBot
-          bot={selectedBotForTest}
-          onClose={() => setSelectedBotForTest(null)}
-        />
+        <ChatBot bot={selectedBotForTest} onClose={() => setSelectedBotForTest(null)} />
       )}
     </>
   );
