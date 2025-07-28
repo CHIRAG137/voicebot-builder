@@ -121,122 +121,35 @@ function App() {
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="widget" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="widget" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Web Widget
-            </TabsTrigger>
-            <TabsTrigger value="react" className="flex items-center gap-2">
-              <Code2 className="h-4 w-4" />
-              React Component
-            </TabsTrigger>
-            <TabsTrigger value="backend" className="flex items-center gap-2">
-              <Server className="h-4 w-4" />
-              Backend SDK
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="widget" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 h-5 text-primary" />
-                  Web Widget Integration
-                </CardTitle>
-                <CardDescription>
-                  Add a floating chat widget to any website with just a few lines of code
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Step 1: Add the script to your HTML</h4>
-                  <CodeBlock code={webWidgetCode} language="HTML" type="Web Widget" />
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Features:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Floating chat widget with customizable position</li>
-                    <li>• Responsive design for mobile and desktop</li>
-                    <li>• Customizable colors and branding</li>
-                    <li>• Auto-expanding chat window</li>
-                    <li>• Session persistence</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="react" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Code2 className="h-5 h-5 text-primary" />
-                  React Component
-                </CardTitle>
-                <CardDescription>
-                  Integrate the chatbot directly into your React application
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Installation & Usage:</h4>
-                  <CodeBlock code={reactComponentCode} language="JSX" type="React Component" />
-                </div>
-                <div className="bg-muted p-4 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Benefits:</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• TypeScript support</li>
-                    <li>• React hooks for state management</li>
-                    <li>• Custom styling with CSS-in-JS</li>
-                    <li>• Event callbacks for user interactions</li>
-                    <li>• SSR compatible</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="backend" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Server className="h-5 h-5 text-primary" />
-                  Backend SDK Integration
-                </CardTitle>
-                <CardDescription>
-                  Integrate the chatbot API directly into your backend services
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <h4 className="font-semibold text-sm">Installation & Basic Usage:</h4>
-                  <CodeBlock code={backendSDKCode} language="JavaScript" type="Backend SDK" />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Use Cases:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Customer support automation</li>
-                      <li>• Internal tools integration</li>
-                      <li>• Slack/Discord bots</li>
-                      <li>• API gateway integration</li>
-                    </ul>
-                  </div>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2">Features:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• RESTful API endpoints</li>
-                      <li>• WebSocket support</li>
-                      <li>• Authentication & rate limiting</li>
-                      <li>• Analytics & logging</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 h-5 text-primary" />
+                Web Widget Integration
+              </CardTitle>
+              <CardDescription>
+                Add a floating chat widget to any website with just a few lines of code
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-semibold text-sm">Step 1: Add the script to your HTML</h4>
+                <CodeBlock code={webWidgetCode} language="HTML" type="Web Widget" />
+              </div>
+              <div className="bg-muted p-4 rounded-lg">
+                <h4 className="font-semibold text-sm mb-2">Features:</h4>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Floating chat widget with customizable position</li>
+                  <li>• Responsive design for mobile and desktop</li>
+                  <li>• Customizable colors and branding</li>
+                  <li>• Auto-expanding chat window</li>
+                  <li>• Session persistence</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
