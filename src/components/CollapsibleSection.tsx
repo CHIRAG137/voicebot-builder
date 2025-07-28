@@ -15,6 +15,7 @@ export const CollapsibleSection = ({ title, icon, children, defaultOpen = false 
   return (
     <div className="border border-border rounded-lg overflow-hidden shadow-soft">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-6 bg-card hover:bg-muted/50 transition-all duration-200"
       >
