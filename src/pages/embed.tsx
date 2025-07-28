@@ -54,7 +54,7 @@ export default function EmbedChat() {
     setInput("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/bots/ask", {
+      const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/bots/ask`, {
         botId,
         question: currentInput,
       });

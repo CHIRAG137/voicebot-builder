@@ -70,7 +70,7 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/bots/ask", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/ask`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

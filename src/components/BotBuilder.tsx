@@ -63,7 +63,7 @@ export const BotBuilder = () => {
 
   const fetchBots = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/bots");
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots`);
       const data = await res.json();
 
       if (res.ok) {
@@ -118,7 +118,7 @@ export const BotBuilder = () => {
         formData.append("file", botConfig.file);
       }
 
-      const response = await fetch("http://localhost:5000/api/bots/create", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/create`, {
         method: "POST",
         body: formData,
       });

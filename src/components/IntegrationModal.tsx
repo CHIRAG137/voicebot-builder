@@ -26,11 +26,11 @@ export const IntegrationModal = ({ isOpen, onClose, botId, botName }: Integratio
   };
 
   const webWidgetCode = `<!-- Add this script tag to your HTML -->
-<script src="http://localhost:5000/widget.js"></script>
+<script src="${import.meta.env.VITE_BACKEND_URL}/widget.js"></script>
 <script>
   ChatBotWidget.init({
     botId: "${botId}",
-    apiUrl: "http://localhost:8080",
+    apiUrl: "${import.meta.env.VITE_FRONTEND_URL}",
     theme: "modern",
     position: "bottom-right",
     triggerLabel: "Chat with ${botName}",
@@ -49,7 +49,7 @@ import { ChatBotSDK } from 'your-chatbot-sdk';
 
 const chatBot = new ChatBotSDK({
   botId: "${botId}",
-  apiUrl: "http://localhost:5000",
+  apiUrl: "import.meta.env.VITE_BACKEND_URL",
   apiKey: "your-api-key" // Get this from your dashboard
 });
 
@@ -75,7 +75,7 @@ function App() {
       
       <ChatBotWidget
         botId="${botId}"
-        apiUrl="http://localhost:5000"
+        apiUrl="import.meta.env.VITE_BACKEND_URL"
         theme="modern"
         position="bottom-right"
         primaryColor="#3b82f6"
