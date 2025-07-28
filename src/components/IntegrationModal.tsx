@@ -26,11 +26,11 @@ export const IntegrationModal = ({ isOpen, onClose, botId, botName }: Integratio
   };
 
   const webWidgetCode = `<!-- Add this script tag to your HTML -->
-<script src="https://your-domain.com/widget.js"></script>
+<script src="http://localhost:5000/widget.js"></script>
 <script>
   ChatBotWidget.init({
     botId: "${botId}",
-    apiUrl: "http://localhost:5000",
+    apiUrl: "http://localhost:8080",
     theme: "modern",
     position: "bottom-right",
     triggerLabel: "Chat with ${botName}",
