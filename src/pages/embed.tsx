@@ -94,7 +94,7 @@ export default function EmbedChat() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background border border-border/20">
       {/* Chat Header */}
       <div className="flex items-center gap-3 p-4 border-b bg-card">
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
