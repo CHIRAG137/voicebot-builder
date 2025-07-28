@@ -50,6 +50,7 @@ export const LanguageSection = ({ botConfig, updateConfig }: LanguageSectionProp
                 {language}
                 {botConfig.languages.length > 1 && (
                   <button
+                    type="button"
                     onClick={() => removeLanguage(language)}
                     className="ml-2 hover:text-destructive"
                   >
@@ -74,6 +75,7 @@ export const LanguageSection = ({ botConfig, updateConfig }: LanguageSectionProp
               </SelectContent>
             </Select>
             <Button 
+              type="button"
               onClick={addLanguage} 
               disabled={!selectedLanguage}
               variant="outline"
