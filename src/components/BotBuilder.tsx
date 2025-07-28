@@ -10,6 +10,7 @@ import { PersonaSection } from "./BotBuilder/PersonaSection";
 import { useToast } from "@/hooks/use-toast";
 import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
+import { IntegrationModal } from "@/components/IntegrationModal";
 
 interface BotConfig {
   name: string;
@@ -33,6 +34,7 @@ export const BotBuilder = () => {
   const [savedBots, setSavedBots] = useState<any[]>([]);
   const [selectedBotForTest, setSelectedBotForTest] = useState<any | null>(null);
   const [visibleBotCount, setVisibleBotCount] = useState(3);
+  const [selectedBotForIntegration, setSelectedBotForIntegration] = useState<any | null>(null);
 
   const handleShowMore = () => {
     setVisibleBotCount(prev => Math.min(prev + 3, savedBots.length));
@@ -174,7 +176,8 @@ export const BotBuilder = () => {
 
 
   const handleIntegrate = (id: string) => {
-    toast({ title: "Integration Code", description: "Bot integration code copied to clipboard!" });
+    const bot = savedBots.find(b => b.id === id);
+    if (bot) setSelectedBotForIntegration(bot);
   };
 
   const handleDelete = (id: string) => {
@@ -284,6 +287,15 @@ export const BotBuilder = () => {
 
       {selectedBotForTest && (
         <ChatBot bot={selectedBotForTest} onClose={() => setSelectedBotForTest(null)} />
+      )}
+
+      {selectedBotForIntegration && (
+        <IntegrationModal
+          isOpen={!!selectedBotForIntegration}
+          onClose={() => setSelectedBotForIntegration(null)}
+          botId={selectedBotForIntegration.id}
+          botName={selectedBotForIntegration.name}
+        />
       )}
     </>
   );
