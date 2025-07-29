@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -61,6 +61,7 @@ export const EmbedCustomizer = ({
   initialCustomization 
 }: EmbedCustomizerProps) => {
   const { toast } = useToast();
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [customization, setCustomization] = useState<EmbedCustomization>({
     ...defaultCustomization,
     botId,
@@ -80,7 +81,6 @@ export const EmbedCustomizer = ({
               ...response.data.customization
             });
           } else {
-            // Use defaults if no customization exists
             setCustomization({
               ...defaultCustomization,
               botId,
@@ -89,7 +89,6 @@ export const EmbedCustomizer = ({
           }
         } catch (error) {
           console.error('Error loading customization:', error);
-          // Use defaults on error
           setCustomization({
             ...defaultCustomization,
             botId,
@@ -101,6 +100,16 @@ export const EmbedCustomizer = ({
       fetchCustomization();
     }
   }, [botId, botName]);
+
+  // Send customization updates to iframe in real-time
+  useEffect(() => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'CUSTOMIZATION_UPDATE',
+        customization: customization
+      }, '*');
+    }
+  }, [customization]);
 
   const handleInputChange = (field: keyof EmbedCustomization, value: string) => {
     setCustomization(prev => ({
@@ -140,7 +149,7 @@ export const EmbedCustomizer = ({
     });
   };
 
-  const previewUrl = `${window.location.origin}/embed?botId=${botId}`;
+  const previewUrl = `${window.location.origin}/embed?botId=${botId}&preview=true`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -342,16 +351,26 @@ export const EmbedCustomizer = ({
               <CardContent>
                 <div className="border rounded-lg overflow-hidden h-96">
                   <iframe
-                    src={`${previewUrl}&preview=true`}
+                    ref={iframeRef}
+                    src={previewUrl}
                     className="w-full h-full"
                     style={{
                       filter: 'none',
                       backgroundColor: customization.backgroundColor
                     }}
+                    onLoad={() => {
+                      // Send initial customization when iframe loads
+                      if (iframeRef.current && iframeRef.current.contentWindow) {
+                        iframeRef.current.contentWindow.postMessage({
+                          type: 'CUSTOMIZATION_UPDATE',
+                          customization: customization
+                        }, '*');
+                      }
+                    }}
                   />
                 </div>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Preview URL: <code className="text-xs bg-muted px-1 rounded">{previewUrl}</code>
+                  Preview URL: <code className="text-xs bg-muted px-1 rounded">{previewUrl.replace('&preview=true', '')}</code>
                 </p>
               </CardContent>
             </Card>

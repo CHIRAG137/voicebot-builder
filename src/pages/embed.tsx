@@ -17,6 +17,7 @@ interface Message {
 export default function EmbedChat() {
   const [searchParams] = useSearchParams();
   const botId = searchParams.get("botId");
+  const isPreview = searchParams.get("preview") === "true";
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,22 +32,37 @@ export default function EmbedChat() {
     scrollToBottom();
   }, [messages]);
 
+  // Listen for real-time customization updates from parent window
   useEffect(() => {
-    if (botId) {
-      // Load customization from API
-      const fetchCustomization = async () => {
-        try {
-          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`);
-          if (response.data.customization) {
-            setCustomization(response.data.customization);
-          }
-        } catch (error) {
-          console.error('Error loading customization:', error);
-          // Use defaults if API fails
+    if (isPreview) {
+      const handleMessage = (event: MessageEvent) => {
+        if (event.data.type === 'CUSTOMIZATION_UPDATE') {
+          setCustomization(event.data.customization);
         }
       };
 
-      fetchCustomization();
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
+    }
+  }, [isPreview]);
+
+  useEffect(() => {
+    if (botId) {
+      // Only fetch from API if not in preview mode
+      if (!isPreview) {
+        const fetchCustomization = async () => {
+          try {
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`);
+            if (response.data.customization) {
+              setCustomization(response.data.customization);
+            }
+          } catch (error) {
+            console.error('Error loading customization:', error);
+          }
+        };
+
+        fetchCustomization();
+      }
 
       // Set initial message with default
       setMessages([{
@@ -55,7 +71,7 @@ export default function EmbedChat() {
         timestamp: new Date()
       }]);
     }
-  }, [botId]);
+  }, [botId, isPreview]);
 
   // Update welcome message when customization changes
   useEffect(() => {
@@ -66,7 +82,7 @@ export default function EmbedChat() {
         timestamp: new Date()
       }]);
     }
-  }, [customization]);
+  }, [customization?.welcomeMessage]);
 
   const sendMessage = async () => {
     if (!input.trim() || !botId || isLoading) return;
@@ -81,6 +97,20 @@ export default function EmbedChat() {
 
     const currentInput = input;
     setInput("");
+
+    // In preview mode, just show a demo response
+    if (isPreview) {
+      setTimeout(() => {
+        const botMessage: Message = { 
+          from: "bot", 
+          text: "This is a preview response. Your actual bot will respond based on your training data.", 
+          timestamp: new Date() 
+        };
+        setMessages((prev) => [...prev, botMessage]);
+        setIsLoading(false);
+      }, 1000);
+      return;
+    }
 
     try {
       const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/bots/ask`, {
@@ -122,7 +152,7 @@ export default function EmbedChat() {
     );
   }
 
-  // Apply custom styles
+  // Apply custom styles with CSS variables for easier updates
   const customStyles = customization ? {
     '--custom-primary': customization.primaryColor,
     '--custom-bg': customization.backgroundColor,
@@ -136,7 +166,7 @@ export default function EmbedChat() {
 
   return (
     <div 
-      className="flex flex-col h-full border border-border/20"
+      className="flex flex-col h-full border border-border/20 transition-all duration-200"
       style={{
         backgroundColor: customization?.backgroundColor || undefined,
         color: customization?.textColor || undefined,
@@ -145,28 +175,29 @@ export default function EmbedChat() {
     >
       {/* Chat Header */}
       <div 
-        className="flex items-center gap-3 p-4 border-b"
+        className="flex items-center gap-3 p-4 border-b transition-all duration-200"
         style={{
           backgroundColor: customization?.headerBackground || undefined,
           borderRadius: customization ? `${customization.borderRadius}px ${customization.borderRadius}px 0 0` : undefined
         }}
       >
         <div 
-          className="flex items-center justify-center w-8 h-8 rounded-full"
+          className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200"
           style={{
-            backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined
+            backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
+            borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
           }}
         >
           <Bot 
-            className="h-4 w-4"
+            className="h-4 w-4 transition-colors duration-200"
             style={{ color: customization?.primaryColor || undefined }}
           />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">
+          <h3 className="font-semibold text-sm transition-all duration-200">
             {customization?.headerTitle || "Chat Assistant"}
           </h3>
-          <p className="text-xs opacity-70">
+          <p className="text-xs opacity-70 transition-all duration-200">
             {customization?.headerSubtitle || "Online"}
           </p>
         </div>
@@ -179,21 +210,21 @@ export default function EmbedChat() {
             <div key={i} className={`flex gap-3 ${msg.from === "user" ? "justify-end" : "justify-start"}`}>
               {msg.from === "bot" && (
                 <div 
-                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto"
+                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto transition-all duration-200"
                   style={{
                     backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
                     borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
                   }}
                 >
                   <Bot 
-                    className="h-3 w-3"
+                    className="h-3 w-3 transition-colors duration-200"
                     style={{ color: customization?.primaryColor || undefined }}
                   />
                 </div>
               )}
               <div className={`max-w-[80%] ${msg.from === "user" ? "order-first" : ""}`}>
                 <div 
-                  className="p-3 ml-auto"
+                  className="p-3 ml-auto transition-all duration-200"
                   style={{
                     backgroundColor: msg.from === "user" 
                       ? customization?.userMessageColor || undefined
@@ -212,14 +243,14 @@ export default function EmbedChat() {
               </div>
               {msg.from === "user" && (
                 <div 
-                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto"
+                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto transition-all duration-200"
                   style={{
                     backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
                     borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
                   }}
                 >
                   <User 
-                    className="h-3 w-3"
+                    className="h-3 w-3 transition-colors duration-200"
                     style={{ color: customization?.primaryColor || undefined }}
                   />
                 </div>
@@ -230,28 +261,43 @@ export default function EmbedChat() {
           {isLoading && (
             <div className="flex gap-3 justify-start">
               <div 
-                className="flex items-center justify-center w-6 h-6 rounded-full"
+                className="flex items-center justify-center w-6 h-6 rounded-full transition-all duration-200"
                 style={{
                   backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
                   borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
                 }}
               >
                 <Bot 
-                  className="h-3 w-3"
+                  className="h-3 w-3 transition-colors duration-200"
                   style={{ color: customization?.primaryColor || undefined }}
                 />
               </div>
               <div 
-                className="p-3"
+                className="p-3 transition-all duration-200"
                 style={{
                   backgroundColor: customization?.botMessageColor || undefined,
                   borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : '8px'
                 }}
               >
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                  <div 
+                    className="w-2 h-2 opacity-50 rounded-full animate-bounce"
+                    style={{ backgroundColor: customization?.textColor || undefined }}
+                  ></div>
+                  <div 
+                    className="w-2 h-2 opacity-50 rounded-full animate-bounce" 
+                    style={{ 
+                      animationDelay: "0.1s",
+                      backgroundColor: customization?.textColor || undefined 
+                    }}
+                  ></div>
+                  <div 
+                    className="w-2 h-2 opacity-50 rounded-full animate-bounce" 
+                    style={{ 
+                      animationDelay: "0.2s",
+                      backgroundColor: customization?.textColor || undefined 
+                    }}
+                  ></div>
                 </div>
               </div>
             </div>
@@ -262,7 +308,7 @@ export default function EmbedChat() {
 
       {/* Input Area */}
       <div 
-        className="p-4 border-t"
+        className="p-4 border-t transition-all duration-200"
         style={{
           backgroundColor: customization?.headerBackground || undefined,
           borderRadius: customization ? `0 0 ${customization.borderRadius}px ${customization.borderRadius}px` : undefined
@@ -275,7 +321,7 @@ export default function EmbedChat() {
             onKeyDown={handleKeyPress}
             placeholder={customization?.placeholder || "Type your message..."}
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 transition-all duration-200"
             style={{
               borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
               backgroundColor: customization?.backgroundColor || undefined,
@@ -286,7 +332,7 @@ export default function EmbedChat() {
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
             size="icon"
-            className="shrink-0"
+            className="shrink-0 transition-all duration-200"
             style={{
               backgroundColor: customization?.primaryColor || undefined,
               borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
