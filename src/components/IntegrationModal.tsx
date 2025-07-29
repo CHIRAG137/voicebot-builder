@@ -155,7 +155,7 @@ function App() {
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          <Button onClick={() => window.open('https://docs.yourapi.com', '_blank')}>
+          <Button onClick={() => window.open(`/docs/${botId}`, '_blank')}>
             View Full Documentation
           </Button>
         </div>

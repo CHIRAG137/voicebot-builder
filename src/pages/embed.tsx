@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
+import { EmbedCustomization } from "@/components/EmbedCustomizer";
 
 interface Message {
   from: "user" | "bot";
@@ -19,6 +20,7 @@ export default function EmbedChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [customization, setCustomization] = useState<EmbedCustomization | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -31,13 +33,36 @@ export default function EmbedChat() {
 
   useEffect(() => {
     if (botId) {
+      // Load customization
+      const savedCustomization = localStorage.getItem(`embed-customization-${botId}`);
+      if (savedCustomization) {
+        try {
+          setCustomization(JSON.parse(savedCustomization));
+        } catch (error) {
+          console.error('Error loading customization:', error);
+        }
+      }
+
+      // Set initial message
+      const welcomeMessage = customization?.welcomeMessage || "Hello! I'm here to help. What would you like to know?";
       setMessages([{
         from: "bot",
-        text: "Hello! I'm here to help. What would you like to know?",
+        text: welcomeMessage,
         timestamp: new Date()
       }]);
     }
   }, [botId]);
+
+  // Update welcome message when customization changes
+  useEffect(() => {
+    if (customization && messages.length === 1 && messages[0].from === "bot") {
+      setMessages([{
+        from: "bot",
+        text: customization.welcomeMessage,
+        timestamp: new Date()
+      }]);
+    }
+  }, [customization]);
 
   const sendMessage = async () => {
     if (!input.trim() || !botId || isLoading) return;
@@ -93,16 +118,53 @@ export default function EmbedChat() {
     );
   }
 
+  // Apply custom styles
+  const customStyles = customization ? {
+    '--custom-primary': customization.primaryColor,
+    '--custom-bg': customization.backgroundColor,
+    '--custom-header-bg': customization.headerBackground,
+    '--custom-user-msg': customization.userMessageColor,
+    '--custom-bot-msg': customization.botMessageColor,
+    '--custom-text': customization.textColor,
+    '--custom-radius': `${customization.borderRadius}px`,
+    fontFamily: customization.fontFamily
+  } as React.CSSProperties : {};
+
   return (
-    <div className="flex flex-col h-full bg-background border border-border/20">
+    <div 
+      className="flex flex-col h-full border border-border/20"
+      style={{
+        backgroundColor: customization?.backgroundColor || undefined,
+        color: customization?.textColor || undefined,
+        ...customStyles
+      }}
+    >
       {/* Chat Header */}
-      <div className="flex items-center gap-3 p-4 border-b bg-card">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-          <Bot className="h-4 w-4 text-primary" />
+      <div 
+        className="flex items-center gap-3 p-4 border-b"
+        style={{
+          backgroundColor: customization?.headerBackground || undefined,
+          borderRadius: customization ? `${customization.borderRadius}px ${customization.borderRadius}px 0 0` : undefined
+        }}
+      >
+        <div 
+          className="flex items-center justify-center w-8 h-8 rounded-full"
+          style={{
+            backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined
+          }}
+        >
+          <Bot 
+            className="h-4 w-4"
+            style={{ color: customization?.primaryColor || undefined }}
+          />
         </div>
         <div>
-          <h3 className="font-semibold text-sm">Chat Assistant</h3>
-          <p className="text-xs text-muted-foreground">Online</p>
+          <h3 className="font-semibold text-sm">
+            {customization?.headerTitle || "Chat Assistant"}
+          </h3>
+          <p className="text-xs opacity-70">
+            {customization?.headerSubtitle || "Online"}
+          </p>
         </div>
       </div>
 
@@ -112,25 +174,50 @@ export default function EmbedChat() {
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-3 ${msg.from === "user" ? "justify-end" : "justify-start"}`}>
               {msg.from === "bot" && (
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 mt-auto">
-                  <Bot className="h-3 w-3 text-primary" />
+                <div 
+                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto"
+                  style={{
+                    backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
+                    borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
+                  }}
+                >
+                  <Bot 
+                    className="h-3 w-3"
+                    style={{ color: customization?.primaryColor || undefined }}
+                  />
                 </div>
               )}
               <div className={`max-w-[80%] ${msg.from === "user" ? "order-first" : ""}`}>
-                <div className={`p-3 rounded-lg ${
-                  msg.from === "user" 
-                    ? "bg-primary text-primary-foreground ml-auto" 
-                    : "bg-muted"
-                }`}>
+                <div 
+                  className="p-3 ml-auto"
+                  style={{
+                    backgroundColor: msg.from === "user" 
+                      ? customization?.userMessageColor || undefined
+                      : customization?.botMessageColor || undefined,
+                    color: msg.from === "user" && customization?.userMessageColor 
+                      ? '#ffffff' 
+                      : customization?.textColor || undefined,
+                    borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : '8px'
+                  }}
+                >
                   <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1 px-1">
+                <p className="text-xs opacity-70 mt-1 px-1">
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
               {msg.from === "user" && (
-                <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 mt-auto">
-                  <User className="h-3 w-3 text-primary" />
+                <div 
+                  className="flex items-center justify-center w-6 h-6 rounded-full mt-auto"
+                  style={{
+                    backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
+                    borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
+                  }}
+                >
+                  <User 
+                    className="h-3 w-3"
+                    style={{ color: customization?.primaryColor || undefined }}
+                  />
                 </div>
               )}
             </div>
@@ -138,14 +225,29 @@ export default function EmbedChat() {
           
           {isLoading && (
             <div className="flex gap-3 justify-start">
-              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10">
-                <Bot className="h-3 w-3 text-primary" />
+              <div 
+                className="flex items-center justify-center w-6 h-6 rounded-full"
+                style={{
+                  backgroundColor: customization?.primaryColor ? `${customization.primaryColor}20` : undefined,
+                  borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
+                }}
+              >
+                <Bot 
+                  className="h-3 w-3"
+                  style={{ color: customization?.primaryColor || undefined }}
+                />
               </div>
-              <div className="bg-muted p-3 rounded-lg">
+              <div 
+                className="p-3"
+                style={{
+                  backgroundColor: customization?.botMessageColor || undefined,
+                  borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : '8px'
+                }}
+              >
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                  <div className="w-2 h-2 opacity-50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                 </div>
               </div>
             </div>
@@ -155,21 +257,36 @@ export default function EmbedChat() {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-card">
+      <div 
+        className="p-4 border-t"
+        style={{
+          backgroundColor: customization?.headerBackground || undefined,
+          borderRadius: customization ? `0 0 ${customization.borderRadius}px ${customization.borderRadius}px` : undefined
+        }}
+      >
         <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type your message..."
+            placeholder={customization?.placeholder || "Type your message..."}
             disabled={isLoading}
             className="flex-1"
+            style={{
+              borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
+              backgroundColor: customization?.backgroundColor || undefined,
+              color: customization?.textColor || undefined
+            }}
           />
           <Button 
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}
             size="icon"
             className="shrink-0"
+            style={{
+              backgroundColor: customization?.primaryColor || undefined,
+              borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined
+            }}
           >
             <Send className="h-4 w-4" />
           </Button>

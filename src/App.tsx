@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import EmbedChat from "./pages/embed";
+import Documentation from "./pages/Documentation";
 import { PublicBotChatPage } from "@/components/PublicBotChatPage";
 
 const queryClient = new QueryClient();
@@ -18,10 +19,11 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
           <Route path="/bot/:botId" element={<PublicBotChatPage />} />
           <Route path="/embed" element={<EmbedChat />} />
+          <Route path="/docs/:botId" element={<Documentation />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
