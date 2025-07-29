@@ -52,13 +52,13 @@ const defaultCustomization: Omit<EmbedCustomization, 'botId'> = {
   headerBackground: "#ffffff"
 };
 
-export const EmbedCustomizer = ({ 
-  isOpen, 
-  onClose, 
-  botId, 
-  botName, 
+export const EmbedCustomizer = ({
+  isOpen,
+  onClose,
+  botId,
+  botName,
   onSave,
-  initialCustomization 
+  initialCustomization
 }: EmbedCustomizerProps) => {
   const { toast } = useToast();
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -96,7 +96,7 @@ export const EmbedCustomizer = ({
           });
         }
       };
-      
+
       fetchCustomization();
     }
   }, [botId, botName]);
@@ -122,15 +122,15 @@ export const EmbedCustomizer = ({
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`, customization);
       onSave(customization);
-      toast({ 
-        title: "Customization Saved", 
-        description: "Your embed chat design has been updated successfully!" 
+      toast({
+        title: "Customization Saved",
+        description: "Your embed chat design has been updated successfully!"
       });
       onClose();
     } catch (error) {
       console.error('Error saving customization:', error);
-      toast({ 
-        title: "Error", 
+      toast({
+        title: "Error",
         description: "Failed to save customization. Please try again.",
         variant: "destructive"
       });
@@ -143,9 +143,9 @@ export const EmbedCustomizer = ({
       botId,
       headerTitle: botName || defaultCustomization.headerTitle
     });
-    toast({ 
-      title: "Reset to Default", 
-      description: "All customizations have been reset to default values." 
+    toast({
+      title: "Reset to Default",
+      description: "All customizations have been reset to default values."
     });
   };
 
@@ -153,7 +153,7 @@ export const EmbedCustomizer = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl flex items-center gap-2">
             <Palette className="h-6 w-6 text-primary" />
@@ -163,7 +163,7 @@ export const EmbedCustomizer = ({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Customization Form */}
-          <div className="space-y-6">
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             {/* Header Settings */}
             <Card>
               <CardHeader>
@@ -369,32 +369,32 @@ export const EmbedCustomizer = ({
                     }}
                   />
                 </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Preview URL: <code className="text-xs bg-muted px-1 rounded">{previewUrl.replace('&preview=true', '')}</code>
-                </p>
               </CardContent>
             </Card>
           </div>
         </div>
 
-        <Separator />
-
-        <div className="flex justify-between items-center pt-4">
-          <Button variant="outline" onClick={handleReset} className="flex items-center gap-2">
+        <div className="flex justify-between items-center">
+          {/* Reset Button */}
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            className="flex items-center gap-2"
+          >
             <RotateCcw className="h-4 w-4" />
             Reset to Default
           </Button>
-          
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} className="flex items-center gap-2">
-              <Save className="h-4 w-4" />
-              Save Customization
-            </Button>
-          </div>
+
+          {/* Save Button */}
+          <Button
+            onClick={handleSave}
+            className="flex items-center gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Save Customization
+          </Button>
         </div>
+
       </DialogContent>
     </Dialog>
   );
