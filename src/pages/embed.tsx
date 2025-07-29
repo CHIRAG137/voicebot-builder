@@ -36,7 +36,7 @@ export default function EmbedChat() {
       // Load customization from API
       const fetchCustomization = async () => {
         try {
-          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customization/${botId}`);
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`);
           if (response.data.customization) {
             setCustomization(response.data.customization);
           }
