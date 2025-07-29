@@ -33,21 +33,25 @@ export default function EmbedChat() {
 
   useEffect(() => {
     if (botId) {
-      // Load customization
-      const savedCustomization = localStorage.getItem(`embed-customization-${botId}`);
-      if (savedCustomization) {
+      // Load customization from API
+      const fetchCustomization = async () => {
         try {
-          setCustomization(JSON.parse(savedCustomization));
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customization/${botId}`);
+          if (response.data.customization) {
+            setCustomization(response.data.customization);
+          }
         } catch (error) {
           console.error('Error loading customization:', error);
+          // Use defaults if API fails
         }
-      }
+      };
 
-      // Set initial message
-      const welcomeMessage = customization?.welcomeMessage || "Hello! I'm here to help. What would you like to know?";
+      fetchCustomization();
+
+      // Set initial message with default
       setMessages([{
         from: "bot",
-        text: welcomeMessage,
+        text: "Hello! I'm here to help. What would you like to know?",
         timestamp: new Date()
       }]);
     }

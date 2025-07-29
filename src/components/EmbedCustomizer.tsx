@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import axios from "axios";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,14 +69,38 @@ export const EmbedCustomizer = ({
   });
 
   useEffect(() => {
-    if (initialCustomization) {
-      setCustomization({
-        ...defaultCustomization,
-        botId,
-        ...initialCustomization
-      });
+    if (botId) {
+      const fetchCustomization = async () => {
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customization/${botId}`);
+          if (response.data.customization) {
+            setCustomization({
+              ...defaultCustomization,
+              botId,
+              ...response.data.customization
+            });
+          } else {
+            // Use defaults if no customization exists
+            setCustomization({
+              ...defaultCustomization,
+              botId,
+              headerTitle: botName || defaultCustomization.headerTitle
+            });
+          }
+        } catch (error) {
+          console.error('Error loading customization:', error);
+          // Use defaults on error
+          setCustomization({
+            ...defaultCustomization,
+            botId,
+            headerTitle: botName || defaultCustomization.headerTitle
+          });
+        }
+      };
+      
+      fetchCustomization();
     }
-  }, [initialCustomization, botId]);
+  }, [botId, botName]);
 
   const handleInputChange = (field: keyof EmbedCustomization, value: string) => {
     setCustomization(prev => ({
@@ -84,10 +109,9 @@ export const EmbedCustomizer = ({
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
-      // Save to localStorage for now (can be replaced with API call)
-      localStorage.setItem(`embed-customization-${botId}`, JSON.stringify(customization));
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/customization/${botId}`, customization);
       onSave(customization);
       toast({ 
         title: "Customization Saved", 
@@ -95,6 +119,7 @@ export const EmbedCustomizer = ({
       });
       onClose();
     } catch (error) {
+      console.error('Error saving customization:', error);
       toast({ 
         title: "Error", 
         description: "Failed to save customization. Please try again.",
