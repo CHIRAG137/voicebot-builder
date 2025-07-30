@@ -15,6 +15,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bot, User, Send, Mic, MicOff } from "lucide-react";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Message {
   id: string;
@@ -25,14 +27,28 @@ interface Message {
 
 export const PublicBotChatPage = () => {
   const { botId } = useParams<{ botId: string }>();
+  const { toast } = useToast();
   const [bot, setBot] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { isListening, toggleListening } = useSpeechToText({
+    onResult: (text) => {
+      setInputMessage(prev => prev + (prev ? ' ' : '') + text);
+    },
+    onError: (error) => {
+      toast({
+        title: "Speech Recognition Error",
+        description: error,
+        variant: "destructive"
+      });
+    },
+    language: 'en-US'
+  });
 
   useEffect(() => {
     const fetchBot = async () => {
@@ -122,9 +138,9 @@ export const PublicBotChatPage = () => {
     }
   };
 
-  const toggleVoiceInput = () => {
+  const handleVoiceInput = () => {
     if (!bot?.voiceEnabled) return;
-    setIsListening(prev => !prev);
+    toggleListening();
   };
 
   if (loading) return <p className="text-center mt-10">Loading bot...</p>;
@@ -224,10 +240,11 @@ export const PublicBotChatPage = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={toggleVoiceInput}
+                    onClick={handleVoiceInput}
                     className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${
-                      isListening ? "text-red-500" : "text-muted-foreground"
+                      isListening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-primary"
                     }`}
+                    title={isListening ? "Stop recording" : "Start voice input"}
                   >
                     {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                   </Button>

@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
 import { EmbedCustomization } from "@/components/EmbedCustomizer";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
 
 interface Message {
   from: "user" | "bot";
@@ -22,7 +23,18 @@ export default function EmbedChat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [customization, setCustomization] = useState<EmbedCustomization | null>(null);
+  const [botData, setBotData] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { isListening, toggleListening } = useSpeechToText({
+    onResult: (text) => {
+      setInput(prev => prev + (prev ? ' ' : '') + text);
+    },
+    onError: (error) => {
+      console.error("Speech recognition error:", error);
+    },
+    language: 'en-US'
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -50,18 +62,23 @@ export default function EmbedChat() {
     if (botId) {
       // Only fetch from API if not in preview mode
       if (!isPreview) {
-        const fetchCustomization = async () => {
+        const fetchData = async () => {
           try {
-            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`);
-            if (response.data.customization) {
-              setCustomization(response.data.customization);
+            // Fetch customization
+            const customizationResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/customizations/${botId}`);
+            if (customizationResponse.data.customization) {
+              setCustomization(customizationResponse.data.customization);
             }
+
+            // Fetch bot data to check voice enabled
+            const botResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
+            setBotData(botResponse.data);
           } catch (error) {
-            console.error('Error loading customization:', error);
+            console.error('Error loading data:', error);
           }
         };
 
-        fetchCustomization();
+        fetchData();
       }
 
       // Set initial message with default
@@ -139,6 +156,11 @@ export default function EmbedChat() {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleVoiceInput = () => {
+    if (!botData?.voiceEnabled) return;
+    toggleListening();
   };
 
   if (!botId) {
@@ -315,19 +337,38 @@ export default function EmbedChat() {
         }}
       >
         <div className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder={customization?.placeholder || "Type your message..."}
-            disabled={isLoading}
-            className="flex-1 transition-all duration-200"
-            style={{
-              borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
-              backgroundColor: customization?.backgroundColor || undefined,
-              color: customization?.textColor || undefined
-            }}
-          />
+          <div className="relative flex-1">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder={customization?.placeholder || "Type your message..."}
+              disabled={isLoading}
+              className={`flex-1 transition-all duration-200 ${botData?.voiceEnabled ? 'pr-10' : ''}`}
+              style={{
+                borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
+                backgroundColor: customization?.backgroundColor || undefined,
+                color: customization?.textColor || undefined
+              }}
+            />
+            {botData?.voiceEnabled && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleVoiceInput}
+                className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${
+                  isListening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-primary"
+                }`}
+                title={isListening ? "Stop recording" : "Start voice input"}
+              >
+                {isListening ? (
+                  <MicOff className="h-4 w-4" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
           <Button 
             onClick={sendMessage} 
             disabled={!input.trim() || isLoading}

@@ -6,6 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, X, Mic, MicOff } from "lucide-react";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Message {
   id: string;
@@ -29,6 +31,7 @@ interface ChatBotProps {
 }
 
 export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -39,9 +42,22 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
   ]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const { isListening, toggleListening } = useSpeechToText({
+    onResult: (text) => {
+      setInputMessage(prev => prev + (prev ? ' ' : '') + text);
+    },
+    onError: (error) => {
+      toast({
+        title: "Speech Recognition Error",
+        description: error,
+        variant: "destructive"
+      });
+    },
+    language: 'en-US'
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -112,10 +128,9 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
     }
   };
 
-  const toggleVoiceInput = () => {
+  const handleVoiceInput = () => {
     if (!bot.voiceEnabled) return;
-    setIsListening(!isListening);
-    // Voice input functionality would be implemented here
+    toggleListening();
   };
 
   return (
@@ -230,9 +245,11 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={toggleVoiceInput}
-                    className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${isListening ? "text-red-500" : "text-muted-foreground"
-                      }`}
+                    onClick={handleVoiceInput}
+                    className={`absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 ${
+                      isListening ? "text-red-500 animate-pulse" : "text-muted-foreground hover:text-primary"
+                    }`}
+                    title={isListening ? "Stop recording" : "Start voice input"}
                   >
                     {isListening ? (
                       <MicOff className="h-4 w-4" />
