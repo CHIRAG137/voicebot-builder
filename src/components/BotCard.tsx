@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Bot, Globe, Mic, MicOff, MoreHorizontal, Play, Share, Code, Trash2 } from "lucide-react";
+import { Bot, Globe, Mic, MicOff, MoreHorizontal, Play, Share, Code, Trash2, Edit } from "lucide-react";
 
 interface BotCardProps {
   bot: {
@@ -18,10 +18,11 @@ interface BotCardProps {
   onTest: (id: string) => void;
   onShare: (id: string) => void;
   onIntegrate: (id: string) => void;
+  onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export const BotCard = ({ bot, onTest, onShare, onIntegrate, onDelete }: BotCardProps) => {
+export const BotCard = ({ bot, onTest, onShare, onIntegrate, onEdit, onDelete }: BotCardProps) => {
   return (
     <Card className="relative group hover:shadow-strong transition-all duration-300 border-border/50 hover:border-primary/20">
       {/* Three dots menu */}
@@ -40,6 +41,10 @@ export const BotCard = ({ bot, onTest, onShare, onIntegrate, onDelete }: BotCard
             <DropdownMenuItem onClick={() => onIntegrate(bot.id)} className="cursor-pointer">
               <Code className="mr-2 h-4 w-4" />
               Integrate
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onEdit(bot.id)} className="cursor-pointer">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onTest(bot.id)} className="cursor-pointer">
               <Play className="mr-2 h-4 w-4" />
