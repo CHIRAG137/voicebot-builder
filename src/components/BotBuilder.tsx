@@ -73,7 +73,7 @@ export const BotBuilder = () => {
           description: bot.description,
           websiteUrl: bot.website_url,
           voiceEnabled: bot.is_voice_enabled,
-          languages: bot.supported_languages?.split(",") || ["English"],
+          languages: Array.isArray(bot.supported_languages) ? bot.supported_languages : ["English"],
           primaryPurpose: bot.primary_purpose,
           conversationalTone: bot.conversation_tone,
         }));
