@@ -56,7 +56,6 @@ export const PublicBotChatPage = () => {
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
         const data = await res.json();
         setBot(data);
-        console.log("Bot data:", data); // Debug log
 
         setMessages([
           {
@@ -140,7 +139,7 @@ export const PublicBotChatPage = () => {
   };
 
   const handleVoiceInput = () => {
-    if (!bot?.voiceEnabled) return;
+    if (!bot?.is_voice_enabled) return;
     toggleListening();
   };
 
@@ -237,7 +236,7 @@ export const PublicBotChatPage = () => {
                   disabled={isLoading}
                   className="pr-12"
                 />
-                {bot.voiceEnabled && (
+                {bot.is_voice_enabled && (
                   <Button
                     variant="ghost"
                     size="icon"

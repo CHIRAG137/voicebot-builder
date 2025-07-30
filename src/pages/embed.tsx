@@ -73,7 +73,6 @@ export default function EmbedChat() {
             // Fetch bot data to check voice enabled
             const botResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
             setBotData(botResponse.data);
-            console.log("Bot data in embed:", botResponse.data); // Debug log
           } catch (error) {
             console.error('Error loading data:', error);
           }
@@ -160,7 +159,7 @@ export default function EmbedChat() {
   };
 
   const handleVoiceInput = () => {
-    if (!botData?.voiceEnabled) return;
+    if (!botData?.is_voice_enabled) return;
     toggleListening();
   };
 
@@ -345,14 +344,14 @@ export default function EmbedChat() {
               onKeyDown={handleKeyPress}
               placeholder={customization?.placeholder || "Type your message..."}
               disabled={isLoading}
-              className={`flex-1 transition-all duration-200 ${botData?.voiceEnabled ? 'pr-10' : ''}`}
+              className={`flex-1 transition-all duration-200 ${botData?.is_voice_enabled ? 'pr-10' : ''}`}
               style={{
                 borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
                 backgroundColor: customization?.backgroundColor || undefined,
                 color: customization?.textColor || undefined
               }}
             />
-            {botData?.voiceEnabled && (
+            {botData?.is_voice_enabled && (
               <Button
                 variant="ghost"
                 size="icon"
