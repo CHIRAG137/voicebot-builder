@@ -187,9 +187,33 @@ export const BotBuilder = () => {
     if (bot) setSelectedBotForEdit(bot);
   };
 
-  const handleDelete = (id: string) => {
-    setSavedBots(prev => prev.filter(bot => bot.id !== id));
-    toast({ title: "Bot Deleted", description: "Bot has been successfully deleted.", variant: "destructive" });
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to delete bot");
+      }
+
+      // Remove bot from UI list
+      setSavedBots(prev => prev.filter(bot => bot.id !== id));
+
+      toast({
+        title: "Bot Deleted",
+        description: data.message || "Bot and its data were deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Delete bot error:", error);
+      toast({
+        title: "Error Deleting Bot",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
