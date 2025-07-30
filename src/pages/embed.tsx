@@ -73,6 +73,7 @@ export default function EmbedChat() {
             // Fetch bot data to check voice enabled
             const botResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
             setBotData(botResponse.data);
+            console.log("Bot data in embed:", botResponse.data); // Debug log
           } catch (error) {
             console.error('Error loading data:', error);
           }

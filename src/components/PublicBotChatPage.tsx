@@ -56,6 +56,7 @@ export const PublicBotChatPage = () => {
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
         const data = await res.json();
         setBot(data);
+        console.log("Bot data:", data); // Debug log
 
         setMessages([
           {
