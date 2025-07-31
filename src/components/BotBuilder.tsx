@@ -7,6 +7,7 @@ import { BasicInfoSection } from "./BotBuilder/BasicInfoSection";
 import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
+import { RecommendationSection } from "./BotBuilder/RecommendationSection";
 import { useToast } from "@/hooks/use-toast";
 import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
@@ -20,6 +21,7 @@ interface BotConfig {
   file: File | null;
   voiceEnabled: boolean;
   languages: string[];
+  isRecommendationEngine: boolean;
   primaryPurpose: string;
   specializationArea: string;
   conversationalTone: string;
@@ -53,6 +55,7 @@ export const BotBuilder = () => {
     file: null,
     voiceEnabled: false,
     languages: ["English"],
+    isRecommendationEngine: false,
     primaryPurpose: "",
     specializationArea: "",
     conversationalTone: "",
@@ -107,6 +110,7 @@ export const BotBuilder = () => {
       formData.append("is_voice_enabled", botConfig.voiceEnabled.toString());
       formData.append("is_auto_translate", "false");
       formData.append("supported_languages", JSON.stringify(botConfig.languages));
+      formData.append("is_recommendation_engine", botConfig.isRecommendationEngine.toString());
       formData.append("primary_purpose", botConfig.primaryPurpose);
       formData.append("specialisation_area", botConfig.specializationArea);
       formData.append("conversation_tone", botConfig.conversationalTone);
@@ -143,6 +147,7 @@ export const BotBuilder = () => {
         file: null,
         voiceEnabled: false,
         languages: ["English"],
+        isRecommendationEngine: false,
         primaryPurpose: "",
         specializationArea: "",
         conversationalTone: "",
@@ -251,6 +256,9 @@ export const BotBuilder = () => {
                 </CollapsibleSection>
                 <CollapsibleSection title="Voice Configuration" icon={<Mic className="w-5 h-5 text-primary" />}>
                   <VoiceSection botConfig={botConfig} updateConfig={updateConfig} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Recommendation Engine" icon={<Sparkles className="w-5 h-5 text-primary" />}>
+                  <RecommendationSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
                 <CollapsibleSection title="Language Support" icon={<Languages className="w-5 h-5 text-primary" />}>
                   <LanguageSection botConfig={botConfig} updateConfig={updateConfig} />
