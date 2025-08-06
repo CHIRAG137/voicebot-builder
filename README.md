@@ -1,73 +1,70 @@
-# Welcome to your Lovable project
+## Inspiration
 
-## Project info
+Creating custom AI chatbots often involves tedious setup, technical integration, and limited personality customization. We wanted to change that. Inspired by tools like Botpress and the rise of RAG-based systems, we envisioned a simple platform where anyone — technical or not — could build, test, and integrate powerful, taste-aware bots in just a few minutes. Our goal was to make chatbot creation feel more like crafting a personality than configuring a machine.
 
-**URL**: https://lovable.dev/projects/547bb90b-6d81-4eaa-9010-0b3b8945705d
+## What it does
 
-## How can I edit this code?
+TasteBot Studio is a no-code platform that allows users to build AI-powered chatbots tailored to their website, use-case, and brand voice. 
 
-There are several ways of editing your application.
+Users simply:
+- Enter the bot’s name, website, and description
+- Upload a reference file (e.g. manuals, guides)
+- Choose if the bot should have voice support
+- Enable recommendation capabilities using Qloo
+- Select supported languages
+- Define the bot’s persona: tone, audience, keywords, and purpose
 
-**Use Lovable**
+Once created, bots can be:
+- Tested with real-time Q&A
+- Shared via public links
+- Embedded on websites with fully customizable UI (colors, headers, chat styles)
+- Easily edited, updated, or deleted
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/547bb90b-6d81-4eaa-9010-0b3b8945705d) and start prompting.
+The bots leverage RAG (Retrieval-Augmented Generation) techniques with a memory layer for optimized performance, and respond intelligently using uploaded documents or context, making them useful for customer support, onboarding, recommendations, and more.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Demo
 
-**Use your preferred IDE**
+Here's a live flow of the TasteBot AI bot creation and integration process:  
+👉 [View the Miro Board Demo](https://miro.com/app/board/uXjVIuknKD0=/?moveToWidget=3458764636202573637&cot=10)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## How we built it
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **Frontend**: Built with React, providing a clean and interactive interface for bot creation, preview, testing, and sharing.
+- **Backend**: Node.js and Express.js, with APIs to manage bots, files, memory cache, and user configurations.
+- **RAG Engine**: Used embedding and vector similarity search (via tools like Pinecone or FAISS) to extract relevant answers from uploaded documents.
+- **Voice Support**: Web Speech API integration for real-time voice input and responses.
+- **Recommendations**: Integrated with the Qloo API to offer contextual recommendations based on taste profiles.
+- **Embedding**: Generated embeddable JS widgets with customizable UI, previewable before deployment.
 
-Follow these steps:
+## Challenges we ran into
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- Optimizing RAG response speed while keeping context accuracy high
+- Designing an intuitive flow for non-technical users to define complex bot behaviors
+- Building a scalable memory layer that caches prior queries to avoid redundant computation
+- Integrating dynamic voice support and multi-language capabilities smoothly across platforms
+- Ensuring bot embed previews rendered exactly as they would on user websites
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Accomplishments that we're proud of
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Created a truly end-to-end bot-building experience that takes under 3 minutes
+- Seamlessly blended taste-based recommendations, voice input, and persona-based response styling
+- Enabled real-time preview and embed with full customization
+- Built a flexible system that can scale from simple FAQ bots to complex, document-aware assistants
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+## What we learned
 
-**Edit a file directly in GitHub**
+- Simplicity is key — users don’t want to deal with configs or APIs; they want instant results
+- Memory + RAG is a powerful combo for speed and accuracy
+- Persona design matters — a bot with the right tone and purpose enhances user trust and engagement
+- Embedding AI assistants in websites should be as easy as copy-paste — and now it is
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## What's next for TasteBot Studio - AI Chatbots Powered by Personality & Taste
 
-**Use GitHub Codespaces**
+- Launching a template gallery for industry-specific bots (e.g. travel, e-commerce, education)
+- Adding support for multimedia files like images or PDFs as knowledge inputs
+- Training custom fine-tuned models per bot for more nuanced behavior
+- Enabling analytics dashboards to monitor user interactions and bot performance
+- Building Slack, WhatsApp, and Discord integrations for omni-channel support
+- Introducing collaborative bot editing and team-based access controls
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/547bb90b-6d81-4eaa-9010-0b3b8945705d) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+TasteBot Studio is just getting started — our mission is to democratize bot creation and let everyone design bots with flavor, personality, and purpose.
