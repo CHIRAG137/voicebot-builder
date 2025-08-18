@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { loginUser } from "@/api/auth";
+import { setAuthToken } from "@/utils/auth";
 
 export const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,8 +24,8 @@ export const LoginForm = () => {
         alert("Login successful!");
         console.log("Logged in:", response);
 
-        // Example: save token to localStorage
-        localStorage.setItem("token", response.token);
+        // Save token to localStorage using auth utils
+        setAuthToken(response.token!);
 
         // redirect to dashboard
         window.location.href = "/";

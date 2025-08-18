@@ -69,9 +69,8 @@ export const BotBuilder = () => {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots`, {
         headers: getAuthHeaders(),
       });
-      const data = await res.json();
-
       if (res.ok) {
+        const data = await res.json();
         const bots = data.bots.map((bot: any) => ({
           id: bot._id,
           name: bot.name,
@@ -84,7 +83,8 @@ export const BotBuilder = () => {
         }));
         setSavedBots(bots);
       } else {
-        console.error("Failed to load bots:", data.message);
+        const errorText = await res.text();
+        console.error("Failed to load bots:", errorText);
       }
     } catch (err) {
       console.error("Error fetching bots:", err);
