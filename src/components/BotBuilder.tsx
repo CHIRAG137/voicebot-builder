@@ -12,7 +12,8 @@ import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
 import { IntegrationModal } from "@/components/IntegrationModal";
 import { EditBotModal } from "@/components/EditBotModal";
-import { getAuthHeaders } from "@/utils/auth";
+import { useNavigate } from "react-router-dom";
+import { getAuthHeaders, isAuthenticated } from "@/utils/auth";
 
 interface BotConfig {
   name: string;
@@ -32,6 +33,8 @@ interface BotConfig {
 }
 
 export const BotBuilder = () => {
+  const navigate = useNavigate();
+
   const { toast } = useToast();
   const [savedBots, setSavedBots] = useState<any[]>([]);
   const [selectedBotForTest, setSelectedBotForTest] = useState<any | null>(null);
@@ -101,6 +104,11 @@ export const BotBuilder = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isAuthenticated()) {
+      navigate("/login");
+      return;
+    }
 
     try {
       const formData = new FormData();
