@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import EmbedChat from "./pages/embed";
 import Documentation from "./pages/Documentation";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import { PublicBotChatPage } from "@/components/PublicBotChatPage";
 
 const queryClient = new QueryClient();
@@ -19,6 +21,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/bot/:botId" element={<PublicBotChatPage />} />
           <Route path="/embed" element={<EmbedChat />} />
           <Route path="/docs/:botId" element={<Documentation />} />
