@@ -8,6 +8,7 @@ import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
 import { useToast } from "@/hooks/use-toast";
+import { getAuthHeaders } from "@/utils/auth";
 
 interface BotConfig {
   name: string;
@@ -104,6 +105,7 @@ export const EditBotModal = ({ isOpen, onClose, bot, onBotUpdated }: EditBotModa
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${bot.id}`, {
         method: "PUT",
+        headers: getAuthHeaders(),
         body: formData,
       });
 

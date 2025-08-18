@@ -12,6 +12,7 @@ import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
 import { IntegrationModal } from "@/components/IntegrationModal";
 import { EditBotModal } from "@/components/EditBotModal";
+import { getAuthHeaders } from "@/utils/auth";
 
 interface BotConfig {
   name: string;
@@ -65,7 +66,9 @@ export const BotBuilder = () => {
 
   const fetchBots = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots`);
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots`, {
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
 
       if (res.ok) {
@@ -122,6 +125,7 @@ export const BotBuilder = () => {
 
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/create`, {
         method: "POST",
+        headers: getAuthHeaders(),
         body: formData,
       });
 
@@ -191,6 +195,7 @@ export const BotBuilder = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${id}`, {
         method: "DELETE",
+        headers: getAuthHeaders(),
       });
 
       const data = await res.json();
