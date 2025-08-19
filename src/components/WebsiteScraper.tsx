@@ -53,7 +53,7 @@ export const WebsiteScraper = ({ websiteUrl }: WebsiteScraperProps) => {
 
     setSearchLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/search-urls`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape/search-urls`, {
         method: "POST",
         headers: {
           ...getAuthHeaders(),
@@ -124,7 +124,7 @@ export const WebsiteScraper = ({ websiteUrl }: WebsiteScraperProps) => {
     setScrapeProgress(0);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/urls`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape/urls`, {
         method: "POST",
         headers: {
           ...getAuthHeaders(),
@@ -168,7 +168,7 @@ export const WebsiteScraper = ({ websiteUrl }: WebsiteScraperProps) => {
   const startPolling = (jobId: string) => {
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/result/${jobId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/scrape/result/${jobId}`, {
           headers: getAuthHeaders(),
         });
 
