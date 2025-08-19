@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
-import { Bot, Sparkles, User, Mic, Languages, Brain } from "lucide-react";
+import { Bot, Sparkles, User, Globe, Mic, Languages, Brain } from "lucide-react";
 import { BasicInfoSection } from "./BotBuilder/BasicInfoSection";
+import { WebsiteSection } from "./BotBuilder/WebsiteSection";
 import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
@@ -14,7 +15,7 @@ import { IntegrationModal } from "@/components/IntegrationModal";
 import { EditBotModal } from "@/components/EditBotModal";
 import { useNavigate } from "react-router-dom";
 import { getAuthHeaders, isAuthenticated } from "@/utils/auth";
-import { WebsiteScraper } from "@/components/WebsiteScraper";
+
 
 interface BotConfig {
   name: string;
@@ -247,8 +248,6 @@ export const BotBuilder = () => {
             </p>
           </div>
 
-          <WebsiteScraper />
-
           <Card className="shadow-strong border-0">
             <CardHeader className="space-y-1 pb-8">
               <CardTitle className="text-2xl flex items-center gap-2">
@@ -264,6 +263,9 @@ export const BotBuilder = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <CollapsibleSection title="Basic Information" icon={<User className="w-5 h-5 text-primary" />} defaultOpen={true}>
                   <BasicInfoSection botConfig={botConfig} updateConfig={updateConfig} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Website & Content" icon={<Globe className="w-5 h-5 text-primary" />}>
+                  <WebsiteSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
                 <CollapsibleSection title="Voice Configuration" icon={<Mic className="w-5 h-5 text-primary" />}>
                   <VoiceSection botConfig={botConfig} updateConfig={updateConfig} />
