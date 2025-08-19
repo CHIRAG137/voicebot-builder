@@ -240,7 +240,7 @@ export const BotBuilder = () => {
               <Bot className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-hero bg-clip-text text-transparent">
-              AI Bot Builder
+              tasteAI Studio
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Create intelligent, customized AI bots tailored to your specific needs.
