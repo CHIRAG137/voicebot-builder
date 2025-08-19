@@ -14,6 +14,7 @@ import { IntegrationModal } from "@/components/IntegrationModal";
 import { EditBotModal } from "@/components/EditBotModal";
 import { useNavigate } from "react-router-dom";
 import { getAuthHeaders, isAuthenticated } from "@/utils/auth";
+import { WebsiteScraper } from "@/components/WebsiteScraper";
 
 interface BotConfig {
   name: string;
@@ -245,6 +246,8 @@ export const BotBuilder = () => {
               Configure everything from personality to capabilities with our intuitive builder.
             </p>
           </div>
+
+          <WebsiteScraper />
 
           <Card className="shadow-strong border-0">
             <CardHeader className="space-y-1 pb-8">
