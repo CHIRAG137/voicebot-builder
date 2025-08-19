@@ -21,11 +21,14 @@ interface ScrapeJob {
   data?: any[];
 }
 
-export const WebsiteScraper = () => {
+interface WebsiteScraperProps {
+  websiteUrl: string;
+}
+
+export const WebsiteScraper = ({ websiteUrl }: WebsiteScraperProps) => {
   const { toast } = useToast();
   
   // Step 1: URL search
-  const [websiteUrl, setWebsiteUrl] = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
   const [foundUrls, setFoundUrls] = useState<FoundUrl[]>([]);
   
@@ -39,7 +42,7 @@ export const WebsiteScraper = () => {
   const [scrapeResults, setScrapeResults] = useState<any[]>([]);
 
   const handleSearchUrls = async () => {
-    if (!websiteUrl.trim()) {
+    if (!websiteUrl?.trim()) {
       toast({
         title: "Error",
         description: "Please enter a valid website URL",
@@ -209,7 +212,6 @@ export const WebsiteScraper = () => {
   };
 
   const resetScraper = () => {
-    setWebsiteUrl("");
     setFoundUrls([]);
     setScrapeJob(null);
     setScrapeResults([]);
@@ -224,53 +226,29 @@ export const WebsiteScraper = () => {
   const selectedCount = foundUrls.filter(item => item.selected).length;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Card className="shadow-medium border-0">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-primary" />
-            Website Scraper
-          </CardTitle>
-          <CardDescription>
-            Enter a website URL to discover and scrape content for your bot
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Step 1: URL Input and Search */}
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <Label htmlFor="website-url">Website URL</Label>
-                <Input
-                  id="website-url"
-                  type="url"
-                  placeholder="https://example.com"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
-                  disabled={searchLoading || scrapeLoading}
-                />
-              </div>
-              <div className="flex items-end">
-                <Button 
-                  onClick={handleSearchUrls}
-                  disabled={searchLoading || scrapeLoading}
-                  className="bg-gradient-primary hover:opacity-90"
-                >
-                  {searchLoading ? (
-                    <>
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4 mr-2" />
-                      Find URLs
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          Search and scrape specific pages from your website to train your bot with relevant content.
+        </p>
+        <Button 
+          onClick={handleSearchUrls}
+          disabled={!websiteUrl?.trim() || searchLoading || scrapeLoading}
+          className="bg-gradient-primary hover:opacity-90"
+        >
+          {searchLoading ? (
+            <>
+              <Clock className="w-4 h-4 mr-2 animate-spin" />
+              Searching...
+            </>
+          ) : (
+            <>
+              <Search className="w-4 h-4 mr-2" />
+              Find URLs
+            </>
+          )}
+        </Button>
+      </div>
 
           {/* Step 2: URL Selection */}
           {foundUrls.length > 0 && (
@@ -390,8 +368,6 @@ export const WebsiteScraper = () => {
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
     </div>
   );
 };

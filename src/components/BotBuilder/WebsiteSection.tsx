@@ -25,13 +25,7 @@ export const WebsiteSection = ({ botConfig, updateConfig }: WebsiteSectionProps)
         />
       </div>
       
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium text-foreground">Website Content Scraper</h3>
-        <p className="text-sm text-muted-foreground">
-          Search and scrape specific pages from your website to train your bot with relevant content.
-        </p>
-        <WebsiteScraper />
-      </div>
+      <WebsiteScraper websiteUrl={botConfig.websiteUrl} />
     </div>
   );
 };
