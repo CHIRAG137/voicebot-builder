@@ -37,7 +37,8 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       return;
     }
 
-    window.location.href = `${API_BASE_URL}/api/slack/install`;
+    const token = localStorage.getItem("authToken");
+    window.location.href = `${API_BASE_URL}/api/slack/install?token=${token}`;
   };
 
   return (
