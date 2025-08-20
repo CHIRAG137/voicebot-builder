@@ -22,7 +22,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [userDetails, setUserDetails] = useState<{ name?: string; email?: string } | null>(null);
-  const [slackIntegration, setSlackIntegration] = useState<{ slackTeamName?: string } | null>(null);
+  const [slackIntegration, setSlackIntegration] = useState<{ teamName?: string } | null>(null);
   const { toast } = useToast();
 
   const fetchUserDetails = async () => {
@@ -43,7 +43,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       if (response.ok) {
         const data = await response.json();
         setUserDetails(data.user);
-        setSlackIntegration(data.slackIntegration);
+        setSlackIntegration(data.hasSlackIntegration ? data.slackIntegration : null);
       }
     } catch (error) {
       console.error("Failed to fetch user details:", error);
@@ -108,7 +108,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       <div>
                         <p className="font-medium">Slack</p>
                         <p className="text-sm text-muted-foreground">
-                          {slackIntegration ? `Connected to ${slackIntegration.slackTeamName}` : "Connect your workspace"}
+                          {slackIntegration ? `Connected to ${slackIntegration.teamName}` : "Connect your workspace"}
                         </p>
                       </div>
                     </div>

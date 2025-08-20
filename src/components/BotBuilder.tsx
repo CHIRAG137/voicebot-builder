@@ -34,7 +34,7 @@ interface BotConfig {
   keyTopics: string;
   keywords: string;
   customInstructions: string;
-  slackEnabled: boolean;
+  isSlackEnabled: boolean;
   slackChannelId: string;
 }
 
@@ -71,7 +71,7 @@ export const BotBuilder = () => {
     keyTopics: "",
     keywords: "",
     customInstructions: "",
-    slackEnabled: false,
+    isSlackEnabled: false,
     slackChannelId: "",
   });
 
@@ -134,7 +134,7 @@ export const BotBuilder = () => {
       formData.append("key_topics", botConfig.keyTopics);
       formData.append("keywords", botConfig.keywords);
       formData.append("custom_instructions", botConfig.customInstructions);
-      formData.append("slack_enabled", botConfig.slackEnabled.toString());
+      formData.append("is_slack_enabled", botConfig.isSlackEnabled.toString());
       formData.append("slack_channel_id", botConfig.slackChannelId);
 
       if (botConfig.file) {
@@ -173,7 +173,7 @@ export const BotBuilder = () => {
         keyTopics: "",
         keywords: "",
         customInstructions: "",
-        slackEnabled: false,
+        isSlackEnabled: false,
         slackChannelId: "",
       });
 

@@ -13,17 +13,17 @@ export const SlackSection = ({ botConfig, updateConfig }: SlackSectionProps) => 
     <div className="space-y-6">
       <div className="flex items-center space-x-2">
         <Switch
-          id="slackEnabled"
-          checked={botConfig.slackEnabled || false}
-          onCheckedChange={(checked) => updateConfig("slackEnabled", checked)}
+          id="isSlackEnabled"
+          checked={botConfig.isSlackEnabled || false}
+          onCheckedChange={(checked) => updateConfig("isSlackEnabled", checked)}
         />
-        <Label htmlFor="slackEnabled" className="text-sm font-medium flex items-center gap-1">
+        <Label htmlFor="isSlackEnabled" className="text-sm font-medium flex items-center gap-1">
           <MessageSquare className="w-4 h-4" />
           Enable Slack Integration
         </Label>
       </div>
       
-      {botConfig.slackEnabled && (
+      {botConfig.isSlackEnabled && (
         <div className="space-y-2">
           <Label htmlFor="slackChannelId" className="text-sm font-medium">
             Slack Channel ID
