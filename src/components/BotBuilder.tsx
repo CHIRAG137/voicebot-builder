@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollapsibleSection } from "@/components/CollapsibleSection";
-import { Bot, Sparkles, User, Globe, Mic, Languages, Brain } from "lucide-react";
+import { Bot, Sparkles, User, Globe, Mic, Languages, Brain, MessageSquare } from "lucide-react";
 import { BasicInfoSection } from "./BotBuilder/BasicInfoSection";
 import { WebsiteSection } from "./BotBuilder/WebsiteSection";
 import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
+import { SlackSection } from "./BotBuilder/SlackSection";
 import { useToast } from "@/hooks/use-toast";
 import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
@@ -33,6 +34,8 @@ interface BotConfig {
   keyTopics: string;
   keywords: string;
   customInstructions: string;
+  slackEnabled: boolean;
+  slackChannelId: string;
 }
 
 export const BotBuilder = () => {
@@ -68,6 +71,8 @@ export const BotBuilder = () => {
     keyTopics: "",
     keywords: "",
     customInstructions: "",
+    slackEnabled: false,
+    slackChannelId: "",
   });
 
   const fetchBots = async () => {
@@ -129,6 +134,8 @@ export const BotBuilder = () => {
       formData.append("key_topics", botConfig.keyTopics);
       formData.append("keywords", botConfig.keywords);
       formData.append("custom_instructions", botConfig.customInstructions);
+      formData.append("slack_enabled", botConfig.slackEnabled.toString());
+      formData.append("slack_channel_id", botConfig.slackChannelId);
 
       if (botConfig.file) {
         formData.append("file", botConfig.file);
@@ -166,6 +173,8 @@ export const BotBuilder = () => {
         keyTopics: "",
         keywords: "",
         customInstructions: "",
+        slackEnabled: false,
+        slackChannelId: "",
       });
 
       // Reload all bots after creating new one
@@ -277,6 +286,9 @@ export const BotBuilder = () => {
                 </CollapsibleSection>
                 <CollapsibleSection title="Persona & Behavior" icon={<Brain className="w-5 h-5 text-primary" />}>
                   <PersonaSection botConfig={botConfig} updateConfig={updateConfig} />
+                </CollapsibleSection>
+                <CollapsibleSection title="Add Bot to Slack Channel" icon={<MessageSquare className="w-5 h-5 text-primary" />}>
+                  <SlackSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
 
                 <div className="flex justify-end pt-6">

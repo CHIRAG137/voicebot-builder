@@ -21,10 +21,39 @@ interface ProfileModalProps {
 export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [userDetails, setUserDetails] = useState<{ name?: string; email?: string } | null>(null);
+  const [slackIntegration, setSlackIntegration] = useState<{ slackTeamName?: string } | null>(null);
   const { toast } = useToast();
 
+  const fetchUserDetails = async () => {
+    if (!isAuthenticated()) {
+      setUserLoggedIn(false);
+      setUserDetails(null);
+      setSlackIntegration(null);
+      return;
+    }
+
+    setUserLoggedIn(true);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserDetails(data.user);
+        setSlackIntegration(data.slackIntegration);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+    }
+  };
+
   useEffect(() => {
-    setUserLoggedIn(isAuthenticated());
+    if (isOpen) {
+      fetchUserDetails();
+    }
   }, [isOpen]);
 
   const handleSlackAuth = async () => {
@@ -59,9 +88,9 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="text-lg font-semibold">User Profile</h3>
+              <h3 className="text-lg font-semibold">{userDetails?.name || "User Profile"}</h3>
               <p className="text-sm text-muted-foreground">
-                Manage your tasteAI Studio account
+                {userDetails?.email || "Manage your tasteAI Studio account"}
               </p>
             </div>
           </div>
@@ -79,7 +108,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                       <div>
                         <p className="font-medium">Slack</p>
                         <p className="text-sm text-muted-foreground">
-                          Connect your workspace
+                          {slackIntegration ? `Connected to ${slackIntegration.slackTeamName}` : "Connect your workspace"}
                         </p>
                       </div>
                     </div>
@@ -92,7 +121,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
                         "Connecting..."
                       ) : (
                         <>
-                          Add to Slack
+                          {slackIntegration ? "Upgrade Slack Auth" : "Add to Slack"}
                           <ExternalLink className="ml-2 h-4 w-4" />
                         </>
                       )}
