@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +10,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticated, getAuthHeaders } from "@/utils/auth";
+import { API_BASE_URL } from "@/api/auth";
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -18,21 +20,37 @@ interface ProfileModalProps {
 
 export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    setUserLoggedIn(isAuthenticated());
+  }, [isOpen]);
+
   const handleSlackAuth = async () => {
+    if (!userLoggedIn) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to connect your Slack workspace.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsConnecting(true);
     try {
-      // Slack OAuth URL - replace with your actual Slack app client ID
-      const slackAuthUrl = `https://slack.com/oauth/v2/authorize?client_id=YOUR_SLACK_CLIENT_ID&scope=chat:write,channels:read&redirect_uri=${encodeURIComponent(window.location.origin + '/slack-callback')}`;
-      
-      // Open Slack auth in new window
-      window.open(slackAuthUrl, 'slack-auth', 'width=600,height=600');
-      
-      toast({
-        title: "Redirecting to Slack",
-        description: "Complete the authorization in the new window.",
+      // Use the backend API endpoint for Slack OAuth
+      const response = await fetch(`${API_BASE_URL}/api/slack/install`, {
+        method: "GET",
+        headers: getAuthHeaders(),
       });
+
+      if (response.ok) {
+        // The backend will redirect to Slack OAuth
+        window.location.href = response.url;
+      } else {
+        throw new Error("Failed to initiate Slack OAuth");
+      }
     } catch (error) {
       console.error("Slack auth error:", error);
       toast({
@@ -70,40 +88,48 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <h4 className="text-sm font-medium mb-3">Integrations</h4>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold text-sm">
-                      S
+          {userLoggedIn ? (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-medium mb-3">Integrations</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-purple-600 rounded flex items-center justify-center text-white font-bold text-sm">
+                        S
+                      </div>
+                      <div>
+                        <p className="font-medium">Slack</p>
+                        <p className="text-sm text-muted-foreground">
+                          Connect your workspace
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium">Slack</p>
-                      <p className="text-sm text-muted-foreground">
-                        Connect your workspace
-                      </p>
-                    </div>
+                    <Button
+                      onClick={handleSlackAuth}
+                      disabled={isConnecting}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      {isConnecting ? (
+                        "Connecting..."
+                      ) : (
+                        <>
+                          Add to Slack
+                          <ExternalLink className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleSlackAuth}
-                    disabled={isConnecting}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    {isConnecting ? (
-                      "Connecting..."
-                    ) : (
-                      <>
-                        Add to Slack
-                        <ExternalLink className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">
+                Please log in to access integrations
+              </p>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
