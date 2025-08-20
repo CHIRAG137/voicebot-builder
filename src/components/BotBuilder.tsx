@@ -15,6 +15,7 @@ import { IntegrationModal } from "@/components/IntegrationModal";
 import { EditBotModal } from "@/components/EditBotModal";
 import { useNavigate } from "react-router-dom";
 import { getAuthHeaders, isAuthenticated } from "@/utils/auth";
+import { Navbar } from "@/components/Navbar";
 
 
 interface BotConfig {
@@ -233,6 +234,7 @@ export const BotBuilder = () => {
 
   return (
     <>
+      <Navbar />
       <div className="min-h-screen bg-background py-12 px-4">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
