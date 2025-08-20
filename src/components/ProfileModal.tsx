@@ -37,30 +37,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
       return;
     }
 
-    setIsConnecting(true);
-    try {
-      // Use the backend API endpoint for Slack OAuth
-      const response = await fetch(`${API_BASE_URL}/api/slack/install`, {
-        method: "GET",
-        headers: getAuthHeaders(),
-      });
-
-      if (response.ok) {
-        // The backend will redirect to Slack OAuth
-        window.location.href = response.url;
-      } else {
-        throw new Error("Failed to initiate Slack OAuth");
-      }
-    } catch (error) {
-      console.error("Slack auth error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to connect to Slack. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsConnecting(false);
-    }
+    window.location.href = `${API_BASE_URL}/api/slack/install`;
   };
 
   return (
@@ -72,7 +49,7 @@ export const ProfileModal = ({ isOpen, onClose }: ProfileModalProps) => {
             Manage your account settings and integrations
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
             <Avatar className="h-16 w-16">
