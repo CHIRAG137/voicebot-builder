@@ -69,6 +69,8 @@ export const LoginForm = () => {
         <GoogleLogin
           onSuccess={handleGoogleSuccess}
           onError={handleGoogleError}
+          width="400"
+          size="large"
         />
       </div>
 
