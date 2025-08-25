@@ -9,6 +9,8 @@ import { VoiceSection } from "./BotBuilder/VoiceSection";
 import { LanguageSection } from "./BotBuilder/LanguageSection";
 import { PersonaSection } from "./BotBuilder/PersonaSection";
 import { SlackSection } from "./BotBuilder/SlackSection";
+import { ConversationFlowSection } from "./BotBuilder/ConversationFlowSection";
+import { Node, Edge } from '@xyflow/react';
 import { useToast } from "@/hooks/use-toast";
 import { BotCard } from "@/components/BotCard";
 import { ChatBot } from "@/components/ChatBot";
@@ -36,6 +38,7 @@ interface BotConfig {
   customInstructions: string;
   isSlackEnabled: boolean;
   slackChannelId: string;
+  conversationFlow?: { nodes: Node[]; edges: Edge[] };
 }
 
 export const BotBuilder = () => {
@@ -290,6 +293,16 @@ export const BotBuilder = () => {
                 <CollapsibleSection title="Add Bot to Slack Channel" icon={<MessageSquare className="w-5 h-5 text-primary" />}>
                   <SlackSection botConfig={botConfig} updateConfig={updateConfig} />
                 </CollapsibleSection>
+                
+                <ConversationFlowSection 
+                  onFlowSave={(nodes, edges) => {
+                    updateConfig('conversationFlow', { nodes, edges });
+                    toast({
+                      title: "Flow Saved",
+                      description: "Conversation flow has been saved to your bot configuration.",
+                    });
+                  }}
+                />
 
                 <div className="flex justify-end pt-6">
                   <Button
