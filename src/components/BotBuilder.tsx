@@ -139,6 +139,11 @@ export const BotBuilder = () => {
       formData.append("custom_instructions", botConfig.customInstructions);
       formData.append("is_slack_enabled", botConfig.isSlackEnabled.toString());
       formData.append("slack_channel_id", botConfig.slackChannelId);
+      
+      // Add conversation flow if it exists
+      if (botConfig.conversationFlow) {
+        formData.append("conversationFlow", JSON.stringify(botConfig.conversationFlow));
+      }
 
       if (botConfig.file) {
         formData.append("file", botConfig.file);
