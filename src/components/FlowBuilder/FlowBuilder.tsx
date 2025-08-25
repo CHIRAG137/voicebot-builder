@@ -213,6 +213,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
     <div className="h-[600px] relative">
       <div className="absolute top-4 left-4 z-10 flex gap-2">
         <Button
+          type="button"
           size="sm"
           variant="outline"
           onClick={() => addNode('message')}
@@ -221,6 +222,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
           Message
         </Button>
         <Button
+          type="button"
           size="sm"
           variant="outline"
           onClick={() => addNode('question')}
@@ -229,6 +231,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
           Question
         </Button>
         <Button
+          type="button"
           size="sm"
           variant="outline"
           onClick={() => addNode('confirmation')}
@@ -237,6 +240,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
           Confirmation
         </Button>
         <Button
+          type="button"
           size="sm"
           variant="outline"
           onClick={() => addNode('branch')}
@@ -245,6 +249,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
           Branch
         </Button>
         <Button
+          type="button"
           size="sm"
           variant="outline"
           onClick={() => addNode('redirect')}
@@ -255,7 +260,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
       </div>
 
       <div className="absolute top-4 right-4 z-10">
-        <Button onClick={handleSave}>
+        <Button type="button" onClick={handleSave}>
           Save Flow
         </Button>
       </div>
