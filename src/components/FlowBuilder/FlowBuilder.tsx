@@ -190,10 +190,14 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
     setNodes((nds) =>
       nds.map((node) =>
         node.id === nodeId
-          ? { ...node, data: { ...node.data, ...data } }
+          ? { ...node, data: { ...node.data, ...data } as NodeData }
           : node
       )
     );
+    // Update selected node to reflect changes
+    if (selectedNode && selectedNode.id === nodeId) {
+      setSelectedNode((prev) => prev ? { ...prev, data: { ...prev.data, ...data } as NodeData } : null);
+    }
   };
 
   const deleteNode = (nodeId: string) => {
@@ -281,7 +285,7 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
 
       {/* Node Editor Panel */}
       {showNodeEditor && selectedNode && (
-        <Card className="absolute top-20 right-4 z-20 w-80 p-4 shadow-lg">
+        <Card className="absolute top-20 right-4 z-50 w-80 p-4 shadow-lg bg-card">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Edit Node</h3>
             <Button
@@ -298,50 +302,65 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
               selectedNode.data.type === 'question' || 
               selectedNode.data.type === 'confirmation') && (
               <div>
-                <Label>Message</Label>
+                <Label htmlFor="node-message">Message</Label>
                 <Textarea
+                  id="node-message"
                   value={selectedNode.data.message || ''}
                   onChange={(e) => updateNode(selectedNode.id, { message: e.target.value })}
                   placeholder="Enter your message..."
-                  className="mt-1"
+                  className="mt-1 nodrag"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                 />
               </div>
             )}
 
             {selectedNode.data.type === 'question' && (
               <div>
-                <Label>Variable Name</Label>
+                <Label htmlFor="node-variable">Variable Name</Label>
                 <Input
+                  id="node-variable"
+                  type="text"
                   value={selectedNode.data.variable || ''}
                   onChange={(e) => updateNode(selectedNode.id, { variable: e.target.value })}
                   placeholder="e.g., userName, userEmail"
-                  className="mt-1"
+                  className="mt-1 nodrag"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                 />
               </div>
             )}
 
             {selectedNode.data.type === 'branch' && (
               <div>
-                <Label>Options (comma separated)</Label>
+                <Label htmlFor="node-options">Options (comma separated)</Label>
                 <Input
+                  id="node-options"
+                  type="text"
                   value={selectedNode.data.options?.join(', ') || ''}
                   onChange={(e) => updateNode(selectedNode.id, { 
                     options: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
                   })}
                   placeholder="Option 1, Option 2, Option 3"
-                  className="mt-1"
+                  className="mt-1 nodrag"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                 />
               </div>
             )}
 
             {selectedNode.data.type === 'redirect' && (
               <div>
-                <Label>Redirect URL</Label>
+                <Label htmlFor="node-redirect">Redirect URL</Label>
                 <Input
+                  id="node-redirect"
+                  type="text"
                   value={selectedNode.data.redirectUrl || ''}
                   onChange={(e) => updateNode(selectedNode.id, { redirectUrl: e.target.value })}
                   placeholder="https://example.com"
-                  className="mt-1"
+                  className="mt-1 nodrag"
+                  onClick={(e) => e.stopPropagation()}
+                  onMouseDown={(e) => e.stopPropagation()}
                 />
               </div>
             )}
