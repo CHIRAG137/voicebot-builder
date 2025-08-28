@@ -16,6 +16,22 @@ interface Message {
   timestamp: Date;
 }
 
+interface FlowNode {
+  id: string;
+  type: 'message' | 'question' | 'confirmation' | 'branch' | 'redirection';
+  data: {
+    message?: string;
+    variable?: string;
+    options?: string[];
+    redirectUrl?: string;
+  };
+}
+
+interface ConversationFlow {
+  nodes: FlowNode[];
+  edges: { source: string; target: string; id: string }[];
+}
+
 interface ChatBotProps {
   bot: {
     id: string;
@@ -26,22 +42,20 @@ interface ChatBotProps {
     languages: string[];
     primaryPurpose: string;
     conversationalTone: string;
+    conversationFlow?: ConversationFlow;
   };
   onClose: () => void;
 }
 
 export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content: `Hello! I'm ${bot.name}. ${bot.description} How can I help you today?`,
-      sender: "bot",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [flowCompleted, setFlowCompleted] = useState(false);
+  const [collectedVariables, setCollectedVariables] = useState<Record<string, string>>({});
+  const [awaitingResponse, setAwaitingResponse] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -71,6 +85,170 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
     inputRef.current?.focus();
   }, []);
 
+  // Initialize conversation flow on mount
+  useEffect(() => {
+    if (bot.conversationFlow && bot.conversationFlow.nodes.length > 0 && !flowCompleted) {
+      // Find the first node (usually a message node)
+      const firstNode = bot.conversationFlow.nodes.find(n => 
+        !bot.conversationFlow?.edges.some(e => e.target === n.id)
+      );
+      
+      if (firstNode) {
+        setCurrentNodeId(firstNode.id);
+        processNode(firstNode);
+      } else {
+        // No conversation flow, start with regular greeting
+        setFlowCompleted(true);
+        setMessages([{
+          id: "1",
+          content: `Hello! I'm ${bot.name}. ${bot.description} How can I help you today?`,
+          sender: "bot",
+          timestamp: new Date(),
+        }]);
+      }
+    } else if (!bot.conversationFlow || bot.conversationFlow.nodes.length === 0) {
+      // No conversation flow defined
+      setFlowCompleted(true);
+      setMessages([{
+        id: "1",
+        content: `Hello! I'm ${bot.name}. ${bot.description} How can I help you today?`,
+        sender: "bot",
+        timestamp: new Date(),
+      }]);
+    }
+  }, []);
+
+  const processNode = (node: FlowNode) => {
+    if (!node) return;
+
+    switch (node.type) {
+      case 'message':
+        // Display message and move to next node
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: node.data.message || '',
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        
+        // Find and process next node
+        setTimeout(() => {
+          const nextEdge = bot.conversationFlow?.edges.find(e => e.source === node.id);
+          if (nextEdge) {
+            const nextNode = bot.conversationFlow?.nodes.find(n => n.id === nextEdge.target);
+            if (nextNode) {
+              setCurrentNodeId(nextNode.id);
+              processNode(nextNode);
+            }
+          } else {
+            // Flow completed
+            setFlowCompleted(true);
+            setMessages(prev => [...prev, {
+              id: Date.now().toString(),
+              content: "Now feel free to ask me any questions!",
+              sender: 'bot',
+              timestamp: new Date()
+            }]);
+          }
+        }, 1000);
+        break;
+
+      case 'question':
+        // Display question and wait for user response
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: node.data.message || '',
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'confirmation':
+        // Display confirmation with yes/no options
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: `${node.data.message || ''}\n\nPlease respond with Yes or No.`,
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'branch':
+        // Display branch options
+        const optionsText = node.data.options?.join('\n') || '';
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: `${node.data.message || ''}\n\nOptions:\n${optionsText}`,
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'redirection':
+        // Handle redirection
+        if (node.data.redirectUrl) {
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            content: `Redirecting to: ${node.data.redirectUrl}`,
+            sender: 'bot',
+            timestamp: new Date()
+          }]);
+          setTimeout(() => {
+            window.open(node.data.redirectUrl, '_blank');
+            // Continue flow
+            const nextEdge = bot.conversationFlow?.edges.find(e => e.source === node.id);
+            if (nextEdge) {
+              const nextNode = bot.conversationFlow?.nodes.find(n => n.id === nextEdge.target);
+              if (nextNode) {
+                setCurrentNodeId(nextNode.id);
+                processNode(nextNode);
+              }
+            } else {
+              setFlowCompleted(true);
+            }
+          }, 2000);
+        }
+        break;
+    }
+  };
+
+  const handleFlowResponse = (userInput: string) => {
+    const currentNode = bot.conversationFlow?.nodes.find(n => n.id === currentNodeId);
+    if (!currentNode) return;
+
+    // Store variable if defined
+    if (currentNode.data.variable) {
+      setCollectedVariables(prev => ({
+        ...prev,
+        [currentNode.data.variable]: userInput
+      }));
+    }
+
+    // Move to next node
+    const nextEdge = bot.conversationFlow?.edges.find(e => e.source === currentNodeId);
+    if (nextEdge) {
+      const nextNode = bot.conversationFlow?.nodes.find(n => n.id === nextEdge.target);
+      if (nextNode) {
+        setCurrentNodeId(nextNode.id);
+        setAwaitingResponse(false);
+        setTimeout(() => processNode(nextNode), 500);
+      }
+    } else {
+      // Flow completed
+      setFlowCompleted(true);
+      setAwaitingResponse(false);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        content: "Thank you! Now feel free to ask me any questions.",
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
@@ -83,6 +261,15 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
+
+    // Check if we're in conversation flow mode
+    if (!flowCompleted && awaitingResponse) {
+      // Handle flow response
+      handleFlowResponse(userMessage.content);
+      return;
+    }
+
+    // Otherwise, use the askBot API
     setIsLoading(true);
 
     try {
@@ -93,7 +280,7 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
         },
         body: JSON.stringify({
           question: userMessage.content,
-          botId: bot.id, // Make sure this is the MongoDB ObjectId of the bot
+          botId: bot.id,
         }),
       });
 

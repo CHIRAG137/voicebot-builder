@@ -25,6 +25,22 @@ interface Message {
   timestamp: Date;
 }
 
+interface FlowNode {
+  id: string;
+  type: 'message' | 'question' | 'confirmation' | 'branch' | 'redirection';
+  data: {
+    message?: string;
+    variable?: string;
+    options?: string[];
+    redirectUrl?: string;
+  };
+}
+
+interface ConversationFlow {
+  nodes: FlowNode[];
+  edges: { source: string; target: string; id: string }[];
+}
+
 export const PublicBotChatPage = () => {
   const { botId } = useParams<{ botId: string }>();
   const { toast } = useToast();
@@ -33,6 +49,10 @@ export const PublicBotChatPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
+  const [flowCompleted, setFlowCompleted] = useState(false);
+  const [collectedVariables, setCollectedVariables] = useState<Record<string, string>>({});
+  const [awaitingResponse, setAwaitingResponse] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -50,6 +70,126 @@ export const PublicBotChatPage = () => {
     language: 'en-US'
   });
 
+  const processNode = (node: FlowNode) => {
+    if (!node) return;
+
+    switch (node.type) {
+      case 'message':
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: node.data.message || '',
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        
+        setTimeout(() => {
+          const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === node.id);
+          if (nextEdge) {
+            const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+            if (nextNode) {
+              setCurrentNodeId(nextNode.id);
+              processNode(nextNode);
+            }
+          } else {
+            setFlowCompleted(true);
+            setMessages(prev => [...prev, {
+              id: Date.now().toString(),
+              content: "Now feel free to ask me any questions!",
+              sender: 'bot',
+              timestamp: new Date()
+            }]);
+          }
+        }, 1000);
+        break;
+
+      case 'question':
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: node.data.message || '',
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'confirmation':
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: `${node.data.message || ''}\n\nPlease respond with Yes or No.`,
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'branch':
+        const optionsText = node.data.options?.join('\n') || '';
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          content: `${node.data.message || ''}\n\nOptions:\n${optionsText}`,
+          sender: 'bot',
+          timestamp: new Date()
+        }]);
+        setAwaitingResponse(true);
+        break;
+
+      case 'redirection':
+        if (node.data.redirectUrl) {
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            content: `Redirecting to: ${node.data.redirectUrl}`,
+            sender: 'bot',
+            timestamp: new Date()
+          }]);
+          setTimeout(() => {
+            window.open(node.data.redirectUrl, '_blank');
+            const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === node.id);
+            if (nextEdge) {
+              const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+              if (nextNode) {
+                setCurrentNodeId(nextNode.id);
+                processNode(nextNode);
+              }
+            } else {
+              setFlowCompleted(true);
+            }
+          }, 2000);
+        }
+        break;
+    }
+  };
+
+  const handleFlowResponse = (userInput: string) => {
+    const currentNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === currentNodeId);
+    if (!currentNode) return;
+
+    if (currentNode.data.variable) {
+      setCollectedVariables(prev => ({
+        ...prev,
+        [currentNode.data.variable]: userInput
+      }));
+    }
+
+    const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === currentNodeId);
+    if (nextEdge) {
+      const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+      if (nextNode) {
+        setCurrentNodeId(nextNode.id);
+        setAwaitingResponse(false);
+        setTimeout(() => processNode(nextNode), 500);
+      }
+    } else {
+      setFlowCompleted(true);
+      setAwaitingResponse(false);
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        content: "Thank you! Now feel free to ask me any questions.",
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+    }
+  };
+
   useEffect(() => {
     const fetchBot = async () => {
       try {
@@ -57,14 +197,36 @@ export const PublicBotChatPage = () => {
         const data = await res.json();
         setBot(data);
 
-        setMessages([
-          {
+        // Check if bot has conversation flow
+        if (data.conversationFlow && data.conversationFlow.nodes && data.conversationFlow.nodes.length > 0) {
+          // Find the first node (node without incoming edges)
+          const firstNode = data.conversationFlow.nodes.find((n: any) => 
+            !data.conversationFlow.edges.some((e: any) => e.target === n.id)
+          );
+          
+          if (firstNode) {
+            setCurrentNodeId(firstNode.id);
+            processNode(firstNode);
+          } else {
+            // No valid starting node, use default greeting
+            setFlowCompleted(true);
+            setMessages([{
+              id: "init",
+              content: `Hello! I'm ${data.name}. ${data.description} How can I help you today?`,
+              sender: "bot",
+              timestamp: new Date(),
+            }]);
+          }
+        } else {
+          // No conversation flow, use default greeting
+          setFlowCompleted(true);
+          setMessages([{
             id: "init",
             content: `Hello! I'm ${data.name}. ${data.description} How can I help you today?`,
             sender: "bot",
             timestamp: new Date(),
-          },
-        ]);
+          }]);
+        }
       } catch (err) {
         console.error("Failed to fetch bot:", err);
       } finally {
@@ -91,6 +253,15 @@ export const PublicBotChatPage = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage("");
+
+    // Check if we're in conversation flow mode
+    if (!flowCompleted && awaitingResponse) {
+      // Handle flow response
+      handleFlowResponse(userMessage.content);
+      return;
+    }
+
+    // Otherwise, use the askBot API
     setIsLoading(true);
 
     try {
