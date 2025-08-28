@@ -109,6 +109,7 @@ export const BotBuilder = () => {
           languages: Array.isArray(bot.supported_languages) ? bot.supported_languages : ["English"],
           primaryPurpose: bot.primary_purpose,
           conversationalTone: bot.conversation_tone,
+          conversationFlow: bot.conversationFlow
         }));
         setSavedBots(bots);
       } else {
