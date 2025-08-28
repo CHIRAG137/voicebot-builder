@@ -140,10 +140,8 @@ export const BotBuilder = () => {
       formData.append("is_slack_enabled", botConfig.isSlackEnabled.toString());
       formData.append("slack_channel_id", botConfig.slackChannelId);
       
-      // Add conversation flow if it exists
-      if (botConfig.conversationFlow) {
-        formData.append("conversationFlow", JSON.stringify(botConfig.conversationFlow));
-      }
+      // Add conversation flow - always include it (backend expects it)
+      formData.append("conversationFlow", JSON.stringify(botConfig.conversationFlow || { nodes: [], edges: [] }));
 
       if (botConfig.file) {
         formData.append("file", botConfig.file);
@@ -183,6 +181,7 @@ export const BotBuilder = () => {
         customInstructions: "",
         isSlackEnabled: false,
         slackChannelId: "",
+        conversationFlow: { nodes: [], edges: [] },
       });
 
       // Reload all bots after creating new one
