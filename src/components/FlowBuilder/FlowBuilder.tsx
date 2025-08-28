@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import {
   ReactFlow,
   Controls,
@@ -143,9 +143,10 @@ const nodeTypes: NodeTypes = {
 interface FlowBuilderProps {
   botId?: string;
   onSave?: (nodes: Node[], edges: Edge[]) => void;
+  onFlowChange?: (nodes: Node[], edges: Edge[]) => void; // New prop for real-time updates
 }
 
-export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
+export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([
     {
       id: '1',
@@ -161,6 +162,13 @@ export function FlowBuilder({ botId, onSave }: FlowBuilderProps) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
   const [showNodeEditor, setShowNodeEditor] = useState(false);
+
+  // Auto-save flow changes to parent component
+  useEffect(() => {
+    if (onFlowChange) {
+      onFlowChange(nodes, edges);
+    }
+  }, [nodes, edges, onFlowChange]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),

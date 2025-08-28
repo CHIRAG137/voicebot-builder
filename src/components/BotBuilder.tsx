@@ -76,6 +76,21 @@ export const BotBuilder = () => {
     customInstructions: "",
     isSlackEnabled: false,
     slackChannelId: "",
+    conversationFlow: { 
+      nodes: [
+        {
+          id: '1',
+          type: 'message',
+          position: { x: 250, y: 50 },
+          data: { 
+            label: 'Welcome Message',
+            type: 'message',
+            message: 'Hello! I\'m here to help you. Let\'s start by getting some information.'
+          },
+        },
+      ], 
+      edges: [] 
+    },
   });
 
   const fetchBots = async () => {
@@ -305,6 +320,10 @@ export const BotBuilder = () => {
                       title: "Flow Saved",
                       description: "Conversation flow has been saved to your bot configuration.",
                     });
+                  }}
+                  onFlowChange={(nodes, edges) => {
+                    // Auto-update the bot config whenever the flow changes
+                    updateConfig('conversationFlow', { nodes, edges });
                   }}
                 />
 
