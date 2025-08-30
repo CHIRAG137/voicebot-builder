@@ -433,9 +433,9 @@ export const ChatBot = ({ bot, onClose }: ChatBotProps) => {
                     </Avatar>
                   )}
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 max-w-[80%]">
                     <div
-                      className={`max-w-[80%] rounded-lg px-3 py-2 ${message.sender === "user"
+                      className={`rounded-lg px-3 py-2 ${message.sender === "user"
                         ? "bg-primary text-primary-foreground ml-auto"
                         : "bg-muted"
                         }`}
