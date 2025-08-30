@@ -163,6 +163,7 @@ export const PublicBotChatPage = () => {
     const currentNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === currentNodeId);
     if (!currentNode) return;
 
+    // Store variable if defined
     if (currentNode.data.variable) {
       setCollectedVariables(prev => ({
         ...prev,
@@ -170,7 +171,57 @@ export const PublicBotChatPage = () => {
       }));
     }
 
-    const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === currentNodeId);
+    let nextEdge;
+    
+    // Handle branching based on node type
+    if (currentNode.type === 'confirmation') {
+      // For confirmation nodes, check yes/no response
+      const isYes = userInput.toLowerCase().includes('yes') || 
+                    userInput.toLowerCase() === 'y' ||
+                    userInput.toLowerCase() === 'ok' ||
+                    userInput.toLowerCase().includes('sure') ||
+                    userInput.toLowerCase().includes('okay');
+      
+      const sourceHandle = isYes ? 'yes' : 'no';
+      nextEdge = bot?.conversationFlow?.edges.find((e: any) => 
+        e.source === currentNodeId && e.sourceHandle === sourceHandle
+      );
+      
+      // If no edge for this handle, check if there's only a single edge (fallback)
+      if (!nextEdge) {
+        const allEdgesFromNode = bot?.conversationFlow?.edges.filter((e: any) => e.source === currentNodeId);
+        if (allEdgesFromNode?.length === 1) {
+          nextEdge = allEdgesFromNode[0];
+        }
+      }
+    } else if (currentNode.type === 'branch') {
+      // For branch nodes, match user input with options
+      const selectedOption = currentNode.data.options?.find((option: string) =>
+        userInput.toLowerCase().includes(option.toLowerCase())
+      );
+      
+      if (selectedOption) {
+        // Find edge with matching sourceHandle (option index or option text)
+        const optionIndex = currentNode.data.options.indexOf(selectedOption);
+        nextEdge = bot?.conversationFlow?.edges.find((e: any) => 
+          e.source === currentNodeId && 
+          (e.sourceHandle === selectedOption || e.sourceHandle === `option${optionIndex}`)
+        );
+      }
+      
+      // Fallback to any edge if no match
+      if (!nextEdge) {
+        nextEdge = bot?.conversationFlow?.edges.find((e: any) => 
+          e.source === currentNodeId
+        );
+      }
+    } else {
+      // For other node types, just find the next edge
+      nextEdge = bot?.conversationFlow?.edges.find((e: any) => 
+        e.source === currentNodeId
+      );
+    }
+
     if (nextEdge) {
       const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
       if (nextNode) {
@@ -179,6 +230,7 @@ export const PublicBotChatPage = () => {
         setTimeout(() => processNode(nextNode), 500);
       }
     } else {
+      // Flow completed - no more edges
       setFlowCompleted(true);
       setAwaitingResponse(false);
       setMessages(prev => [...prev, {
