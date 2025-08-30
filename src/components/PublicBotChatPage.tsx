@@ -23,6 +23,7 @@ interface Message {
   content: string;
   sender: "user" | "bot";
   timestamp: Date;
+  showConfirmationButtons?: boolean;
 }
 
 interface FlowNode {
@@ -115,9 +116,10 @@ export const PublicBotChatPage = () => {
       case 'confirmation':
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
-          content: `${node.data.message || ''}\n\nPlease respond with Yes or No.`,
+          content: node.data.message || '',
           sender: 'bot',
-          timestamp: new Date()
+          timestamp: new Date(),
+          showConfirmationButtons: true
         }]);
         setAwaitingResponse(true);
         break;
@@ -426,15 +428,53 @@ export const PublicBotChatPage = () => {
                       </AvatarFallback>
                     </Avatar>
                   )}
-                  <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-                      msg.sender === "user" ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
-                    }`}
-                  >
-                    {msg.content}
-                    <div className="text-xs opacity-60 mt-1 text-right">
-                      {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  <div className={`flex flex-col gap-2`}>
+                    <div
+                      className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+                        msg.sender === "user" ? "bg-primary text-primary-foreground ml-auto" : "bg-muted"
+                      }`}
+                    >
+                      {msg.content}
+                      <div className="text-xs opacity-60 mt-1 text-right">
+                        {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </div>
                     </div>
+                    {msg.showConfirmationButtons && awaitingResponse && msg.sender === "bot" && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setMessages(prev => [...prev, {
+                              id: Date.now().toString(),
+                              content: "Yes",
+                              sender: "user",
+                              timestamp: new Date(),
+                            }]);
+                            handleFlowResponse("Yes");
+                          }}
+                          className="hover:bg-primary hover:text-primary-foreground"
+                        >
+                          Yes
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setMessages(prev => [...prev, {
+                              id: Date.now().toString(),
+                              content: "No",
+                              sender: "user",
+                              timestamp: new Date(),
+                            }]);
+                            handleFlowResponse("No");
+                          }}
+                          className="hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          No
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   {msg.sender === "user" && (
                     <Avatar className="h-8 w-8 bg-secondary flex-shrink-0">
