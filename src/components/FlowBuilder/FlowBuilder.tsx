@@ -25,7 +25,7 @@ import { X, Plus, MessageSquare, HelpCircle, GitBranch, CheckCircle, Link2 } fro
 // Node type definitions
 interface NodeData extends Record<string, unknown> {
   label: string;
-  type: 'message' | 'question' | 'confirmation' | 'branch' | 'redirect';
+  type: 'message' | 'question' | 'confirmation' | 'branch' | 'redirect' | 'branchOption';
   message?: string;
   variable?: string;
   options?: string[];
@@ -69,18 +69,18 @@ const ConfirmationNode = ({ data }: { data: NodeData }) => (
     </div>
     <p className="text-xs text-muted-foreground">{data.message || 'Confirm previous input?'}</p>
     <div className="flex gap-4 mt-2">
-      <Handle 
-        type="source" 
-        position={Position.Bottom} 
-        id="yes" 
-        className="w-3 h-3 !left-[30%]" 
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="yes"
+        className="w-3 h-3 !left-[30%]"
         style={{ background: 'green' }}
       />
-      <Handle 
-        type="source" 
-        position={Position.Bottom} 
-        id="no" 
-        className="w-3 h-3 !left-[70%]" 
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="no"
+        className="w-3 h-3 !left-[70%]"
         style={{ background: 'red' }}
       />
     </div>
@@ -92,32 +92,25 @@ const ConfirmationNode = ({ data }: { data: NodeData }) => (
 );
 
 const BranchNode = ({ data }: { data: NodeData }) => (
-  <div className="bg-card border-2 border-purple-500/20 rounded-lg p-4 min-w-[200px]">
+  <div className="bg-card border-2 border-purple-500/20 rounded-lg p-4 min-w-[200px] text-center">
     <Handle type="target" position={Position.Top} className="w-3 h-3" />
-    <div className="flex items-center gap-2 mb-2">
+    <div className="flex items-center gap-2 mb-2 justify-center">
       <GitBranch className="w-4 h-4 text-purple-500" />
       <span className="font-semibold text-sm">Branch</span>
     </div>
-    <p className="text-xs text-muted-foreground">{data.message || 'Conditional branch'}</p>
-    {data.options && data.options.length > 0 && (
-      <div className="mt-2">
-        {data.options.map((option, index) => (
-          <Handle
-            key={index}
-            type="source"
-            position={Position.Bottom}
-            id={`option-${index}`}
-            className="w-3 h-3"
-            style={{ left: `${(index + 1) * (100 / (data.options!.length + 1))}%` }}
-          />
-        ))}
-        <div className="flex justify-around text-xs mt-1">
-          {data.options.map((option, index) => (
-            <span key={index} className="text-purple-500">{option}</span>
-          ))}
-        </div>
-      </div>
-    )}
+    <p className="text-xs text-muted-foreground">
+      {data.message || "Conditional branch"}
+    </p>
+    {/* ✅ Only one source handle */}
+    <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
+  </div>
+);
+
+const BranchOptionNode = ({ data }: { data: NodeData }) => (
+  <div className="bg-card border border-purple-400/40 rounded-lg px-3 py-2 min-w-[120px] text-center">
+    <Handle type="target" position={Position.Top} className="w-3 h-3" />
+    <p className="text-xs text-purple-500 font-medium">{data.label}</p>
+    <Handle type="source" position={Position.Bottom} className="w-3 h-3" />
   </div>
 );
 
@@ -137,6 +130,7 @@ const nodeTypes: NodeTypes = {
   question: QuestionNode,
   confirmation: ConfirmationNode,
   branch: BranchNode,
+  branchOption: BranchOptionNode,
   redirect: RedirectNode,
 };
 
@@ -152,7 +146,7 @@ export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
       id: '1',
       type: 'message',
       position: { x: 250, y: 50 },
-      data: { 
+      data: {
         label: 'Welcome Message',
         type: 'message',
         message: 'Hello! I\'m here to help you. Let\'s start by getting some information.'
@@ -195,16 +189,57 @@ export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
   };
 
   const updateNode = (nodeId: string, data: Partial<NodeData>) => {
-    setNodes((nds) =>
-      nds.map((node) =>
+    setNodes((nds) => {
+      let updatedNodes = nds.map((node) =>
         node.id === nodeId
           ? { ...node, data: { ...node.data, ...data } as NodeData }
           : node
-      )
-    );
-    // Update selected node to reflect changes
+      );
+
+      const branchNode = updatedNodes.find((n) => n.id === nodeId);
+
+      if (branchNode?.data.type === "branch" && data.options) {
+        // Remove old option nodes for this branch
+        updatedNodes = updatedNodes.filter(
+          (n) => !n.id.startsWith(`${nodeId}-opt-`)
+        );
+
+        // Create new option nodes
+        const optionNodes: Node<NodeData>[] = data.options.map((opt, i) => ({
+          id: `${nodeId}-opt-${i}`,
+          type: "branchOption",
+          position: {
+            x: branchNode.position.x + 250,
+            y: branchNode.position.y + i * 100,
+          },
+          data: { label: opt, type: "branchOption" },
+        }));
+
+        updatedNodes = [...updatedNodes, ...optionNodes];
+
+        // Remove old option edges
+        setEdges((eds) =>
+          eds.filter((e) => !e.source.startsWith(`${nodeId}`))
+        );
+
+        // Add edges branch -> option nodes
+        setEdges((eds) => [
+          ...eds,
+          ...data.options.map((_, i) => ({
+            id: `${nodeId}-to-opt-${i}`,
+            source: nodeId,
+            target: `${nodeId}-opt-${i}`,
+          })),
+        ]);
+      }
+
+      return updatedNodes;
+    });
+
     if (selectedNode && selectedNode.id === nodeId) {
-      setSelectedNode((prev) => prev ? { ...prev, data: { ...prev.data, ...data } as NodeData } : null);
+      setSelectedNode((prev) =>
+        prev ? { ...prev, data: { ...prev.data, ...data } as NodeData } : null
+      );
     }
   };
 
@@ -306,22 +341,22 @@ export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
           </div>
 
           <div className="space-y-4">
-            {(selectedNode.data.type === 'message' || 
-              selectedNode.data.type === 'question' || 
+            {(selectedNode.data.type === 'message' ||
+              selectedNode.data.type === 'question' ||
               selectedNode.data.type === 'confirmation') && (
-              <div>
-                <Label htmlFor="node-message">Message</Label>
-                <Textarea
-                  id="node-message"
-                  value={selectedNode.data.message || ''}
-                  onChange={(e) => updateNode(selectedNode.id, { message: e.target.value })}
-                  placeholder="Enter your message..."
-                  className="mt-1 nodrag"
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                />
-              </div>
-            )}
+                <div>
+                  <Label htmlFor="node-message">Message</Label>
+                  <Textarea
+                    id="node-message"
+                    value={selectedNode.data.message || ''}
+                    onChange={(e) => updateNode(selectedNode.id, { message: e.target.value })}
+                    placeholder="Enter your message..."
+                    className="mt-1 nodrag"
+                    onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
 
             {selectedNode.data.type === 'question' && (
               <div>
@@ -341,19 +376,45 @@ export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
 
             {selectedNode.data.type === 'branch' && (
               <div>
-                <Label htmlFor="node-options">Options (comma separated)</Label>
-                <Input
-                  id="node-options"
-                  type="text"
-                  value={selectedNode.data.options?.join(', ') || ''}
-                  onChange={(e) => updateNode(selectedNode.id, { 
-                    options: e.target.value.split(',').map(s => s.trim()).filter(s => s) 
-                  })}
-                  placeholder="Option 1, Option 2, Option 3"
-                  className="mt-1 nodrag"
-                  onClick={(e) => e.stopPropagation()}
-                  onMouseDown={(e) => e.stopPropagation()}
-                />
+                <Label>Options</Label>
+                <div className="space-y-2">
+                  {selectedNode.data.options?.map((opt, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <Input
+                        value={opt}
+                        onChange={(e) => {
+                          const newOpts = [...(selectedNode.data.options || [])];
+                          newOpts[i] = e.target.value;
+                          updateNode(selectedNode.id, { options: newOpts });
+                        }}
+                      />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          updateNode(selectedNode.id, {
+                            options: (selectedNode.data.options || []).filter((_, idx) => idx !== i),
+                          });
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <div className="flex justify-center">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateNode(selectedNode.id, {
+                          options: [...(selectedNode.data.options || []), ""],
+                        })
+                      }
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Add Option
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
