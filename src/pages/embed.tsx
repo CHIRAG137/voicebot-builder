@@ -85,6 +85,7 @@ export default function EmbedChat() {
 
     switch (node.type) {
       case 'message':
+        // Display message and move to next node
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           from: 'bot',
@@ -92,15 +93,17 @@ export default function EmbedChat() {
           timestamp: new Date()
         }]);
         
+        // Find and process next node
         setTimeout(() => {
-          const nextEdge = botData?.conversationFlow?.edges.find((e: any) => String(e.source) === String(node.id));
+          const nextEdge = botData?.conversationFlow?.edges.find((e: any) => e.source === node.id);
           if (nextEdge) {
-            const nextNode = botData?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
+            const nextNode = botData?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
             if (nextNode) {
               setCurrentNodeId(nextNode.id);
               processNode(nextNode);
             }
           } else {
+            // Flow completed
             setFlowCompleted(true);
             setMessages(prev => [...prev, {
               id: Date.now().toString(),
@@ -113,6 +116,7 @@ export default function EmbedChat() {
         break;
 
       case 'question':
+        // Display question and wait for user response
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           from: 'bot',
@@ -123,6 +127,7 @@ export default function EmbedChat() {
         break;
 
       case 'confirmation':
+        // Display confirmation with yes/no options
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           from: 'bot',
@@ -134,6 +139,7 @@ export default function EmbedChat() {
         break;
 
       case 'branch':
+        // Display branch options
         const optionsText = node.data.options?.join('\n') || '';
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
@@ -145,6 +151,7 @@ export default function EmbedChat() {
         break;
 
       case 'redirection':
+        // Handle redirection
         if (node.data.redirectUrl) {
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
@@ -154,9 +161,10 @@ export default function EmbedChat() {
           }]);
           setTimeout(() => {
             window.open(node.data.redirectUrl, '_blank');
-            const nextEdge = botData?.conversationFlow?.edges.find((e: any) => String(e.source) === String(node.id));
+            // Continue flow
+            const nextEdge = botData?.conversationFlow?.edges.find((e: any) => e.source === node.id);
             if (nextEdge) {
-              const nextNode = botData?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
+              const nextNode = botData?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
               if (nextNode) {
                 setCurrentNodeId(nextNode.id);
                 processNode(nextNode);
@@ -171,7 +179,7 @@ export default function EmbedChat() {
   };
 
   const handleFlowResponse = (userInput: string) => {
-    const currentNode = botData?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(currentNodeId));
+    const currentNode = botData?.conversationFlow?.nodes.find((n: any) => n.id === currentNodeId);
     if (!currentNode) return;
 
     // Store variable if defined
@@ -182,9 +190,9 @@ export default function EmbedChat() {
       }));
     }
 
-    const allEdgesFromNode: any[] = botData?.conversationFlow?.edges?.filter((e: any) => String(e.source) === String(currentNodeId)) || [];
+    const allEdgesFromNode = botData?.conversationFlow?.edges?.filter((e: any) => e.source === currentNodeId) || [];
     const handleEdges = allEdgesFromNode.filter(e => typeof e.sourceHandle === 'string' && e.sourceHandle.length > 0);
-    let nextEdge: any | undefined;
+    let nextEdge: typeof allEdgesFromNode[number] | undefined;
 
     if (currentNode.type === 'confirmation') {
       const normalized = userInput.trim().toLowerCase();
@@ -192,27 +200,26 @@ export default function EmbedChat() {
       const chosenHandle = isYes ? 'yes' : 'no';
 
       if (handleEdges.length > 0) {
-        // Only consider handle edges when they exist
+        // Only follow handle-specific edges when available
         nextEdge = handleEdges.find(e => e.sourceHandle === chosenHandle);
 
         if (!nextEdge) {
-          // No edge for the chosen handle => end the flow
+          // No path for the chosen handle -> complete the flow
           setFlowCompleted(true);
           setAwaitingResponse(false);
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
             from: 'bot',
-            text: "Thank you! Now feel free to ask me any questions.",
+            text: "Now feel free to ask me any questions!",
             timestamp: new Date()
           }]);
           return;
         }
       } else {
-        // No handle edges exist; fallback to a single sequential edge (if any)
+        // No handle edges exist; fallback to sequential edge (if any)
         nextEdge = allEdgesFromNode.length === 1 ? allEdgesFromNode[0] : allEdgesFromNode[0];
       }
     } else if (currentNode.type === 'branch') {
-      // Match user input to one of the options
       const options = currentNode.data.options || [];
       const normalized = userInput.trim().toLowerCase();
       const selectedOption = options.find((option: string) =>
@@ -221,18 +228,14 @@ export default function EmbedChat() {
 
       if (selectedOption) {
         const optionIndex = options.indexOf(selectedOption);
-        // React Flow emits handles like "option-0"
-        nextEdge = allEdgesFromNode.find((e: any) =>
-          String(e.source) === String(currentNodeId) &&
-          (e.sourceHandle === `option-${optionIndex}`)
+        // React Flow uses "option-{index}" as handle id
+        nextEdge = allEdgesFromNode.find(e =>
+          e.source === currentNodeId && e.sourceHandle === `option-${optionIndex}`
         );
       }
 
-      // Fallbacks
       if (!nextEdge) {
         if (handleEdges.length > 0) {
-          // If there are explicit option handles but no valid match,
-          // we can re-ask instead of picking an arbitrary path.
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
             from: 'bot',
@@ -241,17 +244,15 @@ export default function EmbedChat() {
           }]);
           return;
         } else {
-          // No handle edges -> generic next
           nextEdge = allEdgesFromNode[0];
         }
       }
     } else {
-      // For other node types, pick the next sequential edge
       nextEdge = allEdgesFromNode[0];
     }
 
     if (nextEdge) {
-      const nextNode = botData?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
+      const nextNode = botData?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
       if (nextNode) {
         setCurrentNodeId(nextNode.id);
         setAwaitingResponse(false);
@@ -271,6 +272,39 @@ export default function EmbedChat() {
     }]);
   };
 
+  // Initialize conversation flow on mount - EXACTLY like chatbot.tsx
+  useEffect(() => {
+    if (botData && botData.conversationFlow && botData.conversationFlow.nodes.length > 0 && !flowCompleted) {
+      // Find the first node (usually a message node)
+      const firstNode = botData.conversationFlow.nodes.find((n: any) => 
+        !botData.conversationFlow?.edges.some((e: any) => e.target === n.id)
+      );
+      
+      if (firstNode) {
+        setCurrentNodeId(firstNode.id);
+        processNode(firstNode);
+      } else {
+        // No conversation flow, start with regular greeting
+        setFlowCompleted(true);
+        setMessages([{
+          id: "1",
+          from: "bot",
+          text: `Hello! I'm ${botData.name}. ${botData.description} How can I help you today?`,
+          timestamp: new Date(),
+        }]);
+      }
+    } else if (botData && (!botData.conversationFlow || botData.conversationFlow.nodes.length === 0)) {
+      // No conversation flow defined
+      setFlowCompleted(true);
+      setMessages([{
+        id: "1",
+        from: "bot",
+        text: `Hello! I'm ${botData.name}. ${botData.description} How can I help you today?`,
+        timestamp: new Date(),
+      }]);
+    }
+  }, [botData]); // Only depend on botData like chatbot.tsx
+
   useEffect(() => {
     if (botId) {
       // Only fetch from API if not in preview mode
@@ -287,36 +321,7 @@ export default function EmbedChat() {
             const botResponse = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/bots/${botId}`);
             setBotData(botResponse.data);
             
-            // Check if bot has conversation flow
-            if (botResponse.data.conversationFlow && botResponse.data.conversationFlow.nodes && botResponse.data.conversationFlow.nodes.length > 0) {
-              // Find the first node (node without incoming edges)
-              const firstNode = botResponse.data.conversationFlow.nodes.find((n: any) => 
-                !botResponse.data.conversationFlow.edges.some((e: any) => String(e.target) === String(n.id))
-              );
-              
-              if (firstNode) {
-                setCurrentNodeId(firstNode.id);
-                processNode(firstNode);
-              } else {
-                // No valid starting node, use default greeting
-                setFlowCompleted(true);
-                setMessages([{
-                  id: "init",
-                  from: "bot",
-                  text: `Hello! I'm ${botResponse.data.name}. ${botResponse.data.description} How can I help you today?`,
-                  timestamp: new Date(),
-                }]);
-              }
-            } else {
-              // No conversation flow, use default greeting
-              setFlowCompleted(true);
-              setMessages([{
-                id: "init",
-                from: "bot",
-                text: `Hello! I'm ${botResponse.data.name}. ${botResponse.data.description} How can I help you today?`,
-                timestamp: new Date(),
-              }]);
-            }
+            // DON'T initialize flow here - let the other useEffect handle it
           } catch (error) {
             console.error('Error loading data:', error);
             setFlowCompleted(true);
@@ -424,7 +429,7 @@ export default function EmbedChat() {
   };
 
   const handleVoiceInput = () => {
-    if (!botData?.is_voice_enabled) return;
+    if (!botData?.voiceEnabled) return;
     toggleListening();
   };
 
@@ -647,14 +652,14 @@ export default function EmbedChat() {
               onKeyDown={handleKeyPress}
               placeholder={customization?.placeholder || "Type your message..."}
               disabled={isLoading}
-              className={`flex-1 transition-all duration-200 ${botData?.is_voice_enabled ? 'pr-10' : ''}`}
+              className={`flex-1 transition-all duration-200 ${botData?.voiceEnabled ? 'pr-10' : ''}`}
               style={{
                 borderRadius: customization?.borderRadius ? `${customization.borderRadius}px` : undefined,
                 backgroundColor: customization?.backgroundColor || undefined,
                 color: customization?.textColor || undefined
               }}
             />
-            {botData?.is_voice_enabled && (
+            {botData?.voiceEnabled && (
               <Button
                 variant="ghost"
                 size="icon"
