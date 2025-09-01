@@ -196,13 +196,13 @@ export default function EmbedChat() {
         nextEdge = handleEdges.find(e => e.sourceHandle === chosenHandle);
 
         if (!nextEdge) {
-          // No edge for the chosen handle => end the flow as requested
+          // No edge for the chosen handle => end the flow
           setFlowCompleted(true);
           setAwaitingResponse(false);
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
             from: 'bot',
-            text: "Now feel free to ask me any questions!",
+            text: "Thank you! Now feel free to ask me any questions.",
             timestamp: new Date()
           }]);
           return;

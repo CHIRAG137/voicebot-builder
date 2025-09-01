@@ -187,12 +187,12 @@ export const PublicBotChatPage = () => {
         nextEdge = handleEdges.find(e => e.sourceHandle === chosenHandle);
 
         if (!nextEdge) {
-          // No edge for the chosen handle => end the flow as requested
+          // No edge for the chosen handle => end the flow
           setFlowCompleted(true);
           setAwaitingResponse(false);
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
-            content: "Now feel free to ask me any questions!",
+            content: "Thank you! Now feel free to ask me any questions.",
             sender: 'bot',
             timestamp: new Date()
           }]);
