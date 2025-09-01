@@ -84,9 +84,9 @@ export const PublicBotChatPage = () => {
         }]);
         
         setTimeout(() => {
-          const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === node.id);
+          const nextEdge = bot?.conversationFlow?.edges.find((e: any) => String(e.source) === String(node.id));
           if (nextEdge) {
-            const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+            const nextNode = bot?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
             if (nextNode) {
               setCurrentNodeId(nextNode.id);
               processNode(nextNode);
@@ -145,9 +145,9 @@ export const PublicBotChatPage = () => {
           }]);
           setTimeout(() => {
             window.open(node.data.redirectUrl, '_blank');
-            const nextEdge = bot?.conversationFlow?.edges.find((e: any) => e.source === node.id);
+            const nextEdge = bot?.conversationFlow?.edges.find((e: any) => String(e.source) === String(node.id));
             if (nextEdge) {
-              const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+              const nextNode = bot?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
               if (nextNode) {
                 setCurrentNodeId(nextNode.id);
                 processNode(nextNode);
@@ -162,7 +162,7 @@ export const PublicBotChatPage = () => {
   };
 
   const handleFlowResponse = (userInput: string) => {
-    const currentNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === currentNodeId);
+    const currentNode = bot?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(currentNodeId));
     if (!currentNode) return;
 
     // Store variable if defined
@@ -173,7 +173,7 @@ export const PublicBotChatPage = () => {
       }));
     }
 
-    const allEdgesFromNode: any[] = bot?.conversationFlow?.edges?.filter((e: any) => e.source === currentNodeId) || [];
+    const allEdgesFromNode: any[] = bot?.conversationFlow?.edges?.filter((e: any) => String(e.source) === String(currentNodeId)) || [];
     const handleEdges = allEdgesFromNode.filter(e => typeof e.sourceHandle === 'string' && e.sourceHandle.length > 0);
     let nextEdge: any | undefined;
 
@@ -214,7 +214,7 @@ export const PublicBotChatPage = () => {
         const optionIndex = options.indexOf(selectedOption);
         // React Flow emits handles like "option-0"
         nextEdge = allEdgesFromNode.find((e: any) =>
-          e.source === currentNodeId &&
+          String(e.source) === String(currentNodeId) &&
           (e.sourceHandle === `option-${optionIndex}`)
         );
       }
@@ -242,7 +242,7 @@ export const PublicBotChatPage = () => {
     }
 
     if (nextEdge) {
-      const nextNode = bot?.conversationFlow?.nodes.find((n: any) => n.id === nextEdge.target);
+      const nextNode = bot?.conversationFlow?.nodes.find((n: any) => String(n.id) === String(nextEdge.target));
       if (nextNode) {
         setCurrentNodeId(nextNode.id);
         setAwaitingResponse(false);
@@ -273,7 +273,7 @@ export const PublicBotChatPage = () => {
         if (data.conversationFlow && data.conversationFlow.nodes && data.conversationFlow.nodes.length > 0) {
           // Find the first node (node without incoming edges)
           const firstNode = data.conversationFlow.nodes.find((n: any) => 
-            !data.conversationFlow.edges.some((e: any) => e.target === n.id)
+            !data.conversationFlow.edges.some((e: any) => String(e.target) === String(n.id))
           );
           
           if (firstNode) {
