@@ -15,6 +15,8 @@ interface Message {
   text: string;
   timestamp: Date;
   showConfirmationButtons?: boolean;
+  showBranchOptions?: boolean;
+  branchOptions?: string[];
 }
 
 interface FlowNode {
@@ -139,13 +141,14 @@ export default function EmbedChat() {
         break;
 
       case 'branch':
-        // Display branch options
-        const optionsText = node.data.options?.join('\n') || '';
+        // Display branch options with buttons
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           from: 'bot',
-          text: `${node.data.message || ''}\n\nOptions:\n${optionsText}`,
-          timestamp: new Date()
+          text: node.data.message || 'Please select an option:',
+          timestamp: new Date(),
+          showBranchOptions: true,
+          branchOptions: node.data.options || []
         }]);
         setAwaitingResponse(true);
         break;
@@ -568,6 +571,29 @@ export default function EmbedChat() {
                     >
                       No
                     </Button>
+                  </div>
+                )}
+                {msg.showBranchOptions && awaitingResponse && msg.from === "bot" && msg.branchOptions && (
+                  <div className="flex flex-wrap gap-2">
+                    {msg.branchOptions.map((option, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setMessages(prev => [...prev, {
+                            id: Date.now().toString(),
+                            from: "user",
+                            text: option,
+                            timestamp: new Date(),
+                          }]);
+                          handleFlowResponse(option);
+                        }}
+                        className="hover:bg-primary hover:text-primary-foreground"
+                      >
+                        {option}
+                      </Button>
+                    ))}
                   </div>
                 )}
               </div>

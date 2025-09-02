@@ -24,6 +24,8 @@ interface Message {
   sender: "user" | "bot";
   timestamp: Date;
   showConfirmationButtons?: boolean;
+  showBranchOptions?: boolean;
+  branchOptions?: string[];
 }
 
 interface FlowNode {
@@ -175,13 +177,14 @@ export const PublicBotChatPage = () => {
         break;
 
       case 'branch':
-        // Display branch options
-        const optionsText = node.data.options?.join('\n') || '';
+        // Display branch options with buttons
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
-          content: `${node.data.message || ''}\n\nOptions:\n${optionsText}`,
+          content: node.data.message || 'Please select an option:',
           sender: 'bot',
-          timestamp: new Date()
+          timestamp: new Date(),
+          showBranchOptions: true,
+          branchOptions: node.data.options || []
         }]);
         setAwaitingResponse(true);
         break;
@@ -488,6 +491,29 @@ export const PublicBotChatPage = () => {
                         >
                           No
                         </Button>
+                      </div>
+                    )}
+                    {message.showBranchOptions && awaitingResponse && message.sender === "bot" && message.branchOptions && (
+                      <div className="flex flex-wrap gap-2">
+                        {message.branchOptions.map((option, index) => (
+                          <Button
+                            key={index}
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setMessages(prev => [...prev, {
+                                id: Date.now().toString(),
+                                content: option,
+                                sender: "user",
+                                timestamp: new Date(),
+                              }]);
+                              handleFlowResponse(option);
+                            }}
+                            className="hover:bg-primary hover:text-primary-foreground"
+                          >
+                            {option}
+                          </Button>
+                        ))}
                       </div>
                     )}
                   </div>
