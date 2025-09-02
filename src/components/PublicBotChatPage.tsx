@@ -267,25 +267,44 @@ export const PublicBotChatPage = () => {
 
       if (selectedOption) {
         const optionIndex = options.indexOf(selectedOption);
-        // React Flow uses "option-{index}" as handle id
-        nextEdge = allEdgesFromNode.find((e: any) =>
-          e.source === currentNodeId && e.sourceHandle === `option-${optionIndex}`
-        );
-      }
-
-      if (!nextEdge) {
-        if (handleEdges.length > 0) {
-          setMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            content: `Please choose one of the provided options:\n${(options || []).join('\n')}`,
-            sender: 'bot',
-            timestamp: new Date()
-          }]);
-          return;
-        } else {
-          nextEdge = allEdgesFromNode[0];
+        // Look for edge from the branch node to option node (e.g., "2-to-opt-0")
+        const optionNodeId = `${currentNodeId}-opt-${optionIndex}`;
+        nextEdge = allEdgesFromNode.find((e: any) => String(e.target) === String(optionNodeId));
+        
+        if (nextEdge) {
+          // Now find the edge from the option node to the next node
+          const edgeFromOption = bot.conversationFlow?.edges?.find((e: any) => String(e.source) === String(optionNodeId));
+          if (edgeFromOption) {
+            const nextNode = bot.conversationFlow?.nodes.find((n: any) => String(n.id) === String(edgeFromOption.target));
+            if (nextNode) {
+              setCurrentNodeId(nextNode.id);
+              setAwaitingResponse(false);
+              setTimeout(() => processNode(nextNode), 300);
+              return;
+            }
+          } else {
+            // No edge from option node - switch to ask API
+            setFlowCompleted(true);
+            setAwaitingResponse(false);
+            setMessages(prev => [...prev, {
+              id: Date.now().toString(),
+              content: "Now feel free to ask me any questions!",
+              sender: 'bot',
+              timestamp: new Date()
+            }]);
+            return;
+          }
         }
       }
+
+      // If no valid option selected, ask again
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        content: `Please choose one of the provided options:\n${(options || []).join('\n')}`,
+        sender: 'bot',
+        timestamp: new Date()
+      }]);
+      return;
     } else {
       nextEdge = allEdgesFromNode[0];
     }
