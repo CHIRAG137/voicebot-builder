@@ -403,13 +403,16 @@ export function FlowBuilder({ botId, onSave, onFlowChange }: FlowBuilderProps) {
                   ))}
                   <div className="flex justify-center">
                     <Button
+                      type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() =>
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         updateNode(selectedNode.id, {
                           options: [...(selectedNode.data.options || []), ""],
-                        })
-                      }
+                        });
+                      }}
                     >
                       <Plus className="w-4 h-4 mr-2" /> Add Option
                     </Button>
